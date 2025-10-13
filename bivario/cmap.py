@@ -28,11 +28,27 @@ def cmap_from_bivariate_data(Z1, Z2, cmap1=plt.cm.Blues, cmap2=plt.cm.Reds) -> "
     it = np.nditer(np.zeros(Z_color.shape[:-1]), flags=["multi_index"], op_flags=["readwrite"])
     while not it.finished:
         divider = Z1_plot[it.multi_index] + Z2_plot[it.multi_index]
+        loc_diff = Z2_plot[it.multi_index] - Z1_plot[it.multi_index]
+        position = (loc_diff + 1) / 2  # 0..1
         Z_color[it.multi_index] = mixbox.lerp(
             Z1_color[it.multi_index] * 255,
             Z2_color[it.multi_index] * 255,
-            Z2_plot[it.multi_index] / divider if divider > 0 else 0.5,
+            # 0.5
+            position,
+            # Z2_plot[it.multi_index] / divider if divider > 0 else 0.5,
         )
+        # print(
+        #     it.multi_index,
+        #     Z1_plot[it.multi_index],
+        #     Z2_plot[it.multi_index],
+        #     divider,
+        #     loc_diff,
+        #     position,
+        #     Z2_plot[it.multi_index] / divider if divider > 0 else 0.5,
+        #     Z1_color[it.multi_index] * 255,
+        #     Z2_color[it.multi_index] * 255,
+        #     Z_color[it.multi_index]
+        # )
         it.iternext()
 
     return Z_color / 255
