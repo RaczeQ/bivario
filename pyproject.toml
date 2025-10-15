@@ -6,8 +6,9 @@ readme = "README.md"
 authors = [
     { name = "Kamil Raczycki", email = "kraczycki@kraina.ai" }
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
+    "colour-science>=0.4.6",
     "folium>=0.20.0",
     "geopandas>=1.0.1",
     "mapclassify>=2.8.1",
