@@ -54,6 +54,7 @@ if TYPE_CHECKING:
 
 #     return Z_color / 255
 
+
 def cmap_from_bivariate_data(
     Z1, Z2, cmap1=plt.cm.Blues, cmap2=plt.cm.Reds, corner_colour=None
 ) -> "npt.NDArray":
@@ -78,6 +79,95 @@ def cmap_from_bivariate_data(
     while not it.finished:
         pos_x, pos_y = Z1_plot[it.multi_index], Z2_plot[it.multi_index]
 
+        loc_diff = pos_x - pos_y
+        position = (loc_diff + 1) / 2
+
+        c1 = Z1_color_oklab[it.multi_index]
+        c2 = Z2_color_oklab[it.multi_index]
+
+        mixed_colour = _lerp(c1, c2, position)
+        mixed_colour_rgb = np.clip(colour.XYZ_to_sRGB(colour.Oklab_to_XYZ(mixed_colour)), 0, 1)
+
+        Z_color[it.multi_index] = mixed_colour_rgb
+        it.iternext()
+
+    return Z_color
+
+
+def corners_cmap_from_bivariate_data(
+    Z1,
+    Z2,
+    c1=[1, 0.5, 0],
+    c2=[0, 0.5, 1],
+    start_colour=[0.8, 0.8, 0.8],
+    end_colour=[0.15, 0.15, 0.15],
+) -> "npt.NDArray":
+    z1mn = Z1.min()
+    z2mn = Z2.min()
+    z1mx = Z1.max()
+    z2mx = Z2.max()
+
+    # Rescale values to fit into colormap range (0->1)
+    Z1_plot = np.array((Z1 - z1mn) / (z1mx - z1mn))
+    Z2_plot = np.array((Z2 - z2mn) / (z2mx - z2mn))
+
+    Z_color = np.zeros((*Z1_plot.shape, 3))
+
+    c1_oklab = colour.XYZ_to_Oklab(colour.sRGB_to_XYZ(np.array(c1)))
+    c2_oklab = colour.XYZ_to_Oklab(colour.sRGB_to_XYZ(np.array(c2)))
+    sc_oklab = colour.XYZ_to_Oklab(colour.sRGB_to_XYZ(np.array(start_colour)))
+    ec_oklab = colour.XYZ_to_Oklab(colour.sRGB_to_XYZ(np.array(end_colour)))
+
+    it = np.nditer(np.zeros(Z_color.shape[:-1]), flags=["multi_index"], op_flags=["readwrite"])
+    while not it.finished:
+        pos_x, pos_y = Z1_plot[it.multi_index], Z2_plot[it.multi_index]
+
+        bottom_colour = _lerp(sc_oklab, c2_oklab, pos_x)
+        top_colour = _lerp(c1_oklab, ec_oklab, pos_x)
+        middle_colour = _lerp(bottom_colour, top_colour, pos_y)
+
+        mixed_colour_rgb = np.clip(colour.XYZ_to_sRGB(colour.Oklab_to_XYZ(middle_colour)), 0, 1)
+
+        Z_color[it.multi_index] = mixed_colour_rgb
+        it.iternext()
+
+    return Z_color
+
+
+def bilinear_cmap_from_bivariate_data(
+    Z1, Z2, c1=[1, 0.5, 0], c2=[0, 0.5, 1], dark_end: bool = True
+) -> "npt.NDArray":
+    if dark_end:
+        return corners_cmap_from_bivariate_data(
+            Z1, Z2, c1, c2, start_colour=[1, 1, 1], end_colour=[0.15, 0.15, 0.15]
+        )
+
+    return corners_cmap_from_bivariate_data(
+        Z1, Z2, c1, c2, start_colour=[0.15, 0.15, 0.15], end_colour=[1, 1, 1]
+    )
+
+    z1mn = Z1.min()
+    z2mn = Z2.min()
+    z1mx = Z1.max()
+    z2mx = Z2.max()
+
+    # Rescale values to fit into colormap range (0->1)
+    Z1_plot = np.array((Z1 - z1mn) / (z1mx - z1mn))
+    Z2_plot = np.array((Z2 - z2mn) / (z2mx - z2mn))
+
+    Z_color = np.zeros((*Z1_plot.shape, 3))
+
+    Z1_color_oklab = Z1_plot[..., None] * colour.XYZ_to_Oklab(colour.sRGB_to_XYZ(np.array(c1)))
+    Z2_color_oklab = Z2_plot[..., None] * colour.XYZ_to_Oklab(colour.sRGB_to_XYZ(np.array(c2)))
+
+    if light_mode:
+        Z1_color_oklab = (1 - Z1_plot[..., None]) * np.array([1, 0, 0]) + Z1_color_oklab
+        Z2_color_oklab = (1 - Z2_plot[..., None]) * np.array([1, 0, 0]) + Z2_color_oklab
+
+    it = np.nditer(np.zeros(Z_color.shape[:-1]), flags=["multi_index"], op_flags=["readwrite"])
+    while not it.finished:
+        pos_x, pos_y = Z1_plot[it.multi_index], Z2_plot[it.multi_index]
+
         loc_diff = pos_y - pos_x
         position = (loc_diff + 1) / 2
 
@@ -91,6 +181,33 @@ def cmap_from_bivariate_data(
         it.iternext()
 
     return Z_color
+
+
+def bilinear_cmap(l=256, c0=[1, 0.5, 0], c1=[0, 0.5, 1]):
+    """
+    Returns an l by l colormap that interpolates linearly between 4 colors;
+    black, c0, c1 and c0+c1.
+
+    Args:
+        l: size of the colormap, defaults to 256
+        c0: [r,g,b] array-like defining the color at the top left corner, defaults to [1,0.5,0] (orange)
+        c1: [r,g,b] array-like defining the color at the bottom right corner, defaults to [0,0.5,1]] (light blue)
+    returns:
+        a (l,l,3) numpy array of rgb values
+    """
+    oklab = np.zeros((l, l, 3))
+    oklab[:, :, :] = (
+        np.linspace(0, 1, l)[:, np.newaxis, np.newaxis]
+        * np.array(colour.XYZ_to_Oklab(colour.sRGB_to_XYZ(c0)))[np.newaxis, np.newaxis, :]
+    )
+
+    oklab[:, :, :] += (
+        np.linspace(0, 1, l)[np.newaxis, :, np.newaxis]
+        * np.array(colour.XYZ_to_Oklab(colour.sRGB_to_XYZ(c1)))[np.newaxis, np.newaxis, :]
+    )
+    rgb = np.clip(colour.XYZ_to_sRGB(colour.Oklab_to_XYZ(oklab)), 0, 1)
+    return rgb
+
 
 # def cmap_from_bivariate_data_old(
 #     Z1, Z2, cmap1=plt.cm.Blues, cmap2=plt.cm.Reds, corner_colour=None
@@ -242,3 +359,7 @@ def cmap_from_bivariate_data(
 #         it.iternext()
 
 #     return Z_color / 255
+
+
+def _lerp(c1, c2, t):
+    return (1 - t) * c1 + t * c2
