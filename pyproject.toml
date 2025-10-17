@@ -13,8 +13,8 @@ dependencies = [
     "geopandas>=1.0.1",
     "mapclassify>=2.8.1",
     "matplotlib>=3.9.4",
+    "narwhals>=2.8.0",
     "numpy>=2.0.2",
-    "pymixbox>=2.0.0",
 ]
 license = { text = "MIT" }
 classifiers = [
@@ -24,7 +24,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -68,12 +67,12 @@ module-root = ""
 
 [tool.black]
 line-length = 100
-target-version = ["py39", "py310", "py311", "py312"]
+target-version = ["py310", "py311", "py312"]
 preview = true
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 extend-exclude = ["old"]
 
 [tool.ruff.lint]

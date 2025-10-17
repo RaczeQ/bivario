@@ -36,9 +36,9 @@ dependencies = [
     { name = "mapclassify", version = "2.8.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "mapclassify", version = "2.10.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "matplotlib" },
+    { name = "narwhals" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "pymixbox" },
 ]
 
 [package.dev-dependencies]
@@ -71,8 +71,8 @@ requires-dist = [
     { name = "geopandas", specifier = ">=1.0.1" },
     { name = "mapclassify", specifier = ">=2.8.1" },
     { name = "matplotlib", specifier = ">=3.9.4" },
+    { name = "narwhals", specifier = ">=2.8.0" },
     { name = "numpy", specifier = ">=2.0.2" },
-    { name = "pymixbox", specifier = ">=2.0.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1222,6 +1222,15 @@ wheels = [
 ]
 
 [[package]]
+name = "narwhals"
+version = "2.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/05/79a5b5a795f36c1aaa002d194c1ef71e5d95f7e1900155bbfde734815ab9/narwhals-2.8.0.tar.gz", hash = "sha256:52e0b22d54718264ae703bd9293af53b04abc995a1414908c3b807ba8c913858", size = 574277, upload-time = "2025-10-13T08:44:28.81Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1d/86/ac808ecb94322a3f1ea31627d13ab3e50dd4333564d711e0e481ad0f4586/narwhals-2.8.0-py3-none-any.whl", hash = "sha256:6304856676ba4a79fd34148bda63aed8060dd6edb1227edf3659ce5e091de73c", size = 415852, upload-time = "2025-10-13T08:44:25.421Z" },
+]
+
+[[package]]
 name = "nest-asyncio"
 version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1747,15 +1756,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631, upload-time = "2025-06-21T13:39:12.283Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
-]
-
-[[package]]
-name = "pymixbox"
-version = "2.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a5/84/7c9d23ea219dd9b88ab89219b1da33325ffe6cf854a69b5b49f83039ef45/pymixbox-2.0.0.tar.gz", hash = "sha256:7f1fc8e950778efedfc20bbeeaf240576baca06726b3ce83a97ce507f226aee4", size = 125012, upload-time = "2022-09-20T12:58:08.915Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/dd/45/64a4d16175dda7cc61742ea2324df277c0f7875010833a3f08a450c83c3e/pymixbox-2.0.0-py2.py3-none-any.whl", hash = "sha256:ac645ee27989ee96622579250ccc057ede2cc57847c56c73082eae2e47341aa4", size = 123258, upload-time = "2022-09-20T12:58:05.97Z" },
 ]
 
 [[package]]
