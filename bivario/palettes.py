@@ -1,3 +1,5 @@
+"""Predefined corner palettes for bivariate colormaps."""
+
 from dataclasses import dataclass
 
 colour_tuple = tuple[float, float, float]
@@ -5,6 +7,8 @@ colour_tuple = tuple[float, float, float]
 
 @dataclass
 class BivariateCornerPalette:
+    """Bivariate palette defined by corner colours."""
+
     accent_a: colour_tuple
     accent_b: colour_tuple
     low: colour_tuple
@@ -119,77 +123,47 @@ BIVARIATE_CORNER_PALETTES = {
         accent_b=(0.92, 0.20, 0.78),
         low=(0.99, 0.98, 0.92),
         high=(0.12, 0.16, 0.34),
-    ),  # sherbet orange vs pastel plum; dessert-like, creamy baseline with gentle dark anchor
+    ),
     "bubblegum": BivariateCornerPalette(
         accent_a=(0.10, 0.78, 0.86),
         accent_b=(0.94, 0.30, 0.56),
         low=(0.99, 0.96, 0.86),
         high=(0.14, 0.16, 0.34),
-    ),  # electric aqua vs bubblegum magenta; carnival lights feel with soft luminous low
+    ),
     "kaleidoscope": BivariateCornerPalette(
         accent_a=(0.12, 0.96, 0.82),
         accent_b=(0.96, 0.28, 0.54),
         low=(0.98, 0.72, 0.20),
         high=(0.46, 0.30, 0.96),
-    ),  # neon teal, hot pink, citrine, electric indigo — high-energy kaleidoscope
+    ),
     "radiant_shift": BivariateCornerPalette(
         accent_a=(0.98, 0.82, 0.28),
         accent_b=(0.78, 0.46, 0.86),
         low=(0.99, 0.98, 0.92),
         high=(0.36, 0.28, 0.92),
-    ),  # brightness-led warm gold vs mid-light violet; one axis reads as bright→darker hue shifts
+    ),
     "blade_runner": BivariateCornerPalette(
         accent_a=(0.10, 0.60, 0.70),
         accent_b=(0.96, 0.50, 0.18),
         low=(0.99, 0.97, 0.86),
         high=(0.14, 0.16, 0.34),
-    ),  # cool neon-teal vs warm orange; high-contrast blockbuster grading for skin vs neon-lit environments
+    ),
     "grand_budapest": BivariateCornerPalette(
         accent_a=(0.94, 0.56, 0.78),
         accent_b=(0.72, 0.36, 0.88),
         low=(0.99, 0.98, 0.96),
         high=(0.16, 0.12, 0.26),
-    ),  # confectionery pastels and rose-plum; stylized period-piece color story
+    ),
     "folk_warmth": BivariateCornerPalette(
         accent_a=(0.92, 0.56, 0.22),
         accent_b=(0.78, 0.46, 0.62),
         low=(0.99, 0.97, 0.90),
         high=(0.12, 0.14, 0.28),
-    ),  # warm amber and soft rosewood; intimate, nostalgic drama tones
+    ),
     "earth": BivariateCornerPalette(
         accent_a=(0.18, 0.56, 0.36),
         accent_b=(0.86, 0.66, 0.38),
         low=(0.99, 0.98, 0.90),
         high=(0.10, 0.12, 0.20),
-    ),  # verdant greens vs warm ochres; terrestrial documentary naturalism with readable contrast
-    "Library Ocean": BivariateCornerPalette(
-        accent_a=(0.69, 0.85, 0.96),
-        accent_b=(0.18, 0.56, 0.86),
-        low=(0.96, 0.98, 0.99),
-        high=(0.06, 0.22, 0.48),
-    ),  # pale coastal aqua -> vibrant ocean blue; low = sunlit shallow, high = deep abyss indigo
-    "Library Ocean Sunset": BivariateCornerPalette(
-        accent_a=(0.66, 0.84, 0.94),
-        accent_b=(0.18, 0.54, 0.86),
-        low=(0.98, 0.88, 0.72),
-        high=(0.06, 0.20, 0.46),
-    ),  # pale sunset-wash (warm peach) over coastal aqua -> deep abyss indigo
-    "Library Ocean Sunset (Warm Accents)": BivariateCornerPalette(
-        accent_a=(0.98, 0.52, 0.18),
-        accent_b=(0.86, 0.28, 0.60),
-        low=(0.98, 0.88, 0.72),
-        high=(0.06, 0.20, 0.46),
-    ),  # warm orange and sunset magenta accents over peachy shallow -> abyss indigo
-    "Library Ocean Sunset (Blue Accent, Softer Abyss)": BivariateCornerPalette(
-        accent_a=(0.12, 0.56, 0.86),
-        accent_b=(0.96, 0.48, 0.20),
-        low=(0.98, 0.88, 0.72),
-        high=(0.18, 0.36, 0.56),
-    ),
-    "Library Ocean Sunset (Sunset Accents, Blue Depths)": BivariateCornerPalette(
-        accent_a=(0.98, 0.48, 0.12),
-        accent_b=(0.12, 0.56, 0.86),
-        low=(0.88, 0.94, 0.98),
-        high=(0.20, 0.36, 0.60),
     ),
 }
