@@ -6,7 +6,7 @@ Returned values are in RGB colour space as floats in range from 0 to 1.
 Colour operations are done in the OKLab colour space.
 """
 
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import narwhals as nw
 import numpy as np
@@ -19,15 +19,16 @@ from bivario.palettes import BIVARIATE_CORNER_PALETTES
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from typing import TypeAlias
 
     import numpy.typing as npt
     from narwhals.typing import IntoSeries
 
-    NumericDType = np.integer | np.floating | np.bool_
-    NumericArray = npt.NDArray[NumericDType]
-    ValueInput = IntoSeries | NumericArray | Iterable[NumericDType]
+    NumericDType: TypeAlias = np.integer | np.floating | np.bool_
+    NumericArray: TypeAlias = npt.NDArray[NumericDType]
+    ValueInput: TypeAlias = IntoSeries | NumericArray | Iterable[float | int | bool]
 
-    BivariateColourmap = npt.NDArray[np.floating]
+    BivariateColourmap: TypeAlias = npt.NDArray[np.floating]
 
 NumericKinds = {"b", "i", "u", "f"}
 
@@ -52,7 +53,7 @@ def bivariate_from_params(
     values_b: "ValueInput",
     params: ALL_BIVARIATE_MODES_PARAMS,
     mode: BIVARIATE_CMAP_MODES | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> "BivariateColourmap":
     """Generate a 2D bivariate palette."""
     # can operate on all other functions, used for API usage
@@ -80,7 +81,7 @@ def bivariate_from_params(
                 values_a=values_a, values_b=values_b, accent_a=accent_a, accent_b=accent_b, **kwargs
             )
         case "cmaps":
-            cmap_a, cmap_b = cast("CMAPS_PARAMS", params)
+            cmap_a, cmap_b = cast("CMAPS_PARAMS", params)  # type: ignore[redundant-cast]
             return bivariate_from_cmaps(
                 values_a=values_a, values_b=values_b, cmap_a=cmap_a, cmap_b=cmap_b, **kwargs
             )
@@ -146,9 +147,9 @@ def bivariate_from_cmaps(
     va_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(va_colour))
     vb_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(vb_colour))
 
-    z_colour = np.zeros_like(va_colour)
+    z_colour = np.zeros_like(va_colour, dtype=float)
 
-    it = np.nditer(np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=["readwrite"])
+    it = np.nditer(np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=[["readwrite"]])
     while not it.finished:
         pos_a, pos_b = va_plot[it.multi_index], vb_plot[it.multi_index]
 
@@ -185,14 +186,14 @@ def bivariate_from_corners(
     va_plot = _normalize_values(_values_a)
     vb_plot = _normalize_values(_values_b)
 
-    z_colour = np.zeros((*va_plot.shape, 3))
+    z_colour = np.zeros((*va_plot.shape, 3), dtype=float)
 
     a_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(to_rgb(accent_a))))
     b_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(to_rgb(accent_b))))
     low_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(to_rgb(low))))
     high_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(to_rgb(high))))
 
-    it = np.nditer(np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=["readwrite"])
+    it = np.nditer(np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=[["readwrite"]])
     while not it.finished:
         pos_a, pos_b = va_plot[it.multi_index], vb_plot[it.multi_index]
 
@@ -214,7 +215,7 @@ def bivariate_from_accents(
     accent_a: ColourType,
     accent_b: ColourType,
     *,
-    dark_mode=False,
+    dark_mode: bool = False,
     light: ColourType = (1, 1, 1),
     dark: ColourType = (0.15, 0.15, 0.15),
 ) -> "BivariateColourmap":
@@ -229,7 +230,7 @@ def bivariate_from_name(
     values_a: "ValueInput",
     values_b: "ValueInput",
     name: str,
-    dark_mode=False,
+    dark_mode: bool = False,
     invert_accents: bool = False,
 ) -> "BivariateColourmap":
     """Load bivariate palette from name."""
@@ -258,7 +259,9 @@ def bivariate_from_name(
     )
 
 
-def _lerp(c_a, c_b, t):
+def _lerp(
+    c_a: "npt.NDArray[np.floating]", c_b: "npt.NDArray[np.floating]", t: float
+) -> "npt.NDArray[np.floating]":
     return (1 - t) * c_a + t * c_b
 
 
@@ -277,8 +280,8 @@ def _validate_values(
 
 
 def _normalize_values(values: "NumericArray") -> "NumericArray":
-    v_min = values.min()
-    v_max = values.max()
+    v_min: float = values.astype(float).min()
+    v_max: float = values.astype(float).max()
 
     # Rescale values to fit into colourmap range (0->1)
     return (values - v_min) / (v_max - v_min)
@@ -286,7 +289,7 @@ def _normalize_values(values: "NumericArray") -> "NumericArray":
 
 def _values_to_numpy(values: "ValueInput") -> "NumericArray":
     try:
-        values_array = nw.from_native(values, series_only=True).to_numpy()
+        values_array: np.ndarray = nw.from_native(values, series_only=True).to_numpy()
     except TypeError:
         values_array = np.array(values)
 
@@ -295,7 +298,7 @@ def _values_to_numpy(values: "ValueInput") -> "NumericArray":
     return values_array
 
 
-def _validate_numeric_noncomplex(arr: "npt.NDArray") -> None:
+def _validate_numeric_noncomplex(arr: "npt.NDArray[Any]") -> None:
     if arr.dtype.kind not in NumericKinds:
         raise TypeError(
             f"unsupported dtype {arr.dtype}; only boolean/integer/unsigned/float allowed"

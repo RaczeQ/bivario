@@ -1,0 +1,67 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+default_stages: [pre-commit]
+repos:
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.13.3
+    hooks:
+      - id: ruff-check
+        args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+      - id: ruff-format
+  - repo: https://github.com/PyCQA/docformatter
+    rev: v1.7.7
+    hooks:
+      - id: docformatter
+        additional_dependencies: [tomli]
+        args: [--in-place, --config, ./pyproject.toml]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        additional_dependencies: ['types-requests', 'types-six', 'numpy']
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1
+    hooks:
+      - id: nbstripout
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-toml
+      - id: check-yaml
+        exclude: mkdocs.yml # See https://github.com/readthedocs/readthedocs.org/issues/6889
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: detect-private-key
+  - repo: https://github.com/dosisod/refurb
+    rev: v2.2.0
+    hooks:
+      - id: refurb
+        args: ["--python-version", "3.10", "--format", "github"]
+        language: python
+        language_version: python3.10
+        stages: [manual]
+  - repo: https://github.com/FHPythonUtils/LicenseCheck
+    rev: "2025.1.0"
+    hooks:
+      - id: licensecheck
+        stages: [manual]
+
+ci:
+  autofix_commit_msg: |
+    fix(pre-commit.ci): auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ""
+  autoupdate_commit_msg: "build(pre-commit.ci): pre-commit autoupdate"
+  autoupdate_schedule: monthly
+  skip: []
+  submodules: false

@@ -1,10 +1,9 @@
 from typing import TYPE_CHECKING, Any
-from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
-import geopandas as gpd
+
 import narwhals as nw
-from PIL import Image
 import numpy as np
+from matplotlib.axes import Axes
+from PIL import Image
 
 from bivario.cmap import (
     ALL_BIVARIATE_MODES_PARAMS,
@@ -13,12 +12,7 @@ from bivario.cmap import (
     get_default_bivariate_params,
 )
 
-# fig, ax = plt.subplots(figsize=(IMG_SIZE_IN, IMG_SIZE_IN), dpi=DPI, constrained_layout=True)
-
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    import numpy.typing as npt
     from narwhals.typing import IntoSeries
 
 DPI = 100
@@ -37,8 +31,13 @@ def plot_bivariate_legend(
     tick_labels_a: list[Any] | None = None,
     tick_labels_b: list[Any] | None = None,
     dark_mode: bool = False,
-    tick_fontsize_px=10,
+    font_colour: str | None = None,
+    tick_fontsize_px: int = 10,
 ) -> None:
+    if (tick_labels_a is not None and tick_labels_b is None) or (
+        tick_labels_a is None and tick_labels_b is not None
+    ):
+        raise ValueError("Both tick labels for a and b values must be either None, or present.")
     parsed_values_a = nw.from_native(values_a, series_only=True)
     parsed_values_b = nw.from_native(values_b, series_only=True)
 
@@ -66,78 +65,93 @@ def plot_bivariate_legend(
 
     tick_fontsize_pt = tick_fontsize_px * 72 / ax.figure.dpi
 
-    color = "white" if dark_mode else "black"
-    with plt.rc_context(
-        {
-            "axes.labelcolor": color,
-            "axes.edgecolor": color,
-            "xtick.color": color,
-            "ytick.color": color,
-        }
-    ):
-        # lrbt
-        ax.imshow(
-            img,
-            origin="lower",
-            extent=(
-                parsed_values_b.min(),
-                parsed_values_b.max(),
-                parsed_values_a.min(),
-                parsed_values_a.max(),
-            ),
-        )
-        ax.tick_params(axis="both", which="both", length=0)
+    colour = font_colour or ("white" if dark_mode else "black")
+    _set_colour_theme(ax, colour)
+    y_min = parsed_values_a.min()
+    y_max = parsed_values_a.max()
+    x_min = parsed_values_b.min()
+    x_max = parsed_values_b.max()
+    height_range = y_max - y_min
+    width_range = x_max - x_min
+    aspect = width_range / height_range
+    ax.imshow(
+        img,
+        origin="lower",
+        extent=(x_min, x_max, y_min, y_max) if tick_labels_a is None else None,
+        aspect=aspect if tick_labels_a is None else None,
+        interpolation="nearest",
+    )
+    ax.tick_params(axis="both", which="both", length=0)
 
-        ax.annotate(
-            "",
-            xy=(0, 1),
-            xytext=(0, 0),
-            arrowprops=dict(
-                arrowstyle="->",
-                lw=1,
-                color=color,
-            ),
-            xycoords="axes fraction",
-        )
-        ax.annotate(
-            "",
-            xy=(1, 0),
-            xytext=(0, 0),
-            arrowprops=dict(
-                arrowstyle="->",
-                lw=1,
-                color=color,
-            ),
-            xycoords="axes fraction",
-        )
+    ax.annotate(
+        "",
+        xy=(0, 1),
+        xytext=(0, 0),
+        arrowprops=dict(
+            arrowstyle="->",
+            lw=1,
+            color=colour,
+            shrinkA=0,
+            shrinkB=0,
+        ),
+        xycoords="axes fraction",
+    )
+    ax.annotate(
+        "",
+        xy=(1, 0),
+        xytext=(0, 0),
+        arrowprops=dict(
+            arrowstyle="->",
+            lw=1,
+            color=colour,
+            shrinkA=0,
+            shrinkB=0,
+        ),
+        xycoords="axes fraction",
+    )
 
-        ax.set_ylabel(label_a, fontsize=tick_fontsize_pt)
-        ax.set_xlabel(label_b, fontsize=tick_fontsize_pt)
-        ax.tick_params(labelsize=tick_fontsize_pt)
+    ax.set_ylabel(label_a, fontsize=tick_fontsize_pt)
+    ax.set_xlabel(label_b, fontsize=tick_fontsize_pt)
+    ax.tick_params(labelsize=tick_fontsize_pt)
 
-        if tick_labels_a:
-            yticks = np.linspace(-0.5, legend_cmap.shape[2] - 0.5, len(tick_labels_a))
-            # xticks = np.arange(-0.5, cmap.shape[1], 1)
-            # categorical
-            # xticks = np.arange(0, cmap.shape[1], 1)
-            ax.set_yticks(yticks)
+    if tick_labels_a:
+        yticks = np.linspace(-0.5, legend_cmap.shape[0] - 0.5, len(tick_labels_a))
+        print(yticks)
+        # xticks = np.arange(-0.5, cmap.shape[1], 1)
+        # categorical
+        # xticks = np.arange(0, cmap.shape[1], 1)
+        ax.set_yticks(yticks)
 
-            # ax.set_xticklabels(labels[:len(xticks)], ha="right")
-            ax.set_yticklabels(tick_labels_a)
-        # else:
-        #     ax.yaxis.set_major_formatter(lambda y, pos: print(y, pos))
+        # ax.set_xticklabels(labels[:len(xticks)], ha="right")
+        ax.set_yticklabels(tick_labels_a)
+    # else:
+    #     ax.yaxis.set_major_formatter(lambda y, pos: print(y, pos))
 
-        if tick_labels_b:
-            # labels = [0, *binning_start.bins]
+    if tick_labels_b:
+        # labels = [0, *binning_start.bins]
 
-            # numerical
-            xticks = np.linspace(-0.5, legend_cmap.shape[1] - 0.5, len(tick_labels_b))
-            # xticks = np.arange(-0.5, cmap.shape[1], 1)
-            # categorical
-            # xticks = np.arange(0, cmap.shape[1], 1)
-            ax.set_xticks(xticks)
+        # numerical
+        xticks = np.linspace(-0.5, legend_cmap.shape[1] - 0.5, len(tick_labels_b))
+        print(xticks)
+        # xticks = np.arange(-0.5, cmap.shape[1], 1)
+        # categorical
+        # xticks = np.arange(0, cmap.shape[1], 1)
+        ax.set_xticks(xticks)
 
-            # ax.set_xticklabels(labels[:len(xticks)], ha="right")
-            ax.set_xticklabels(tick_labels_b)
-        # else:
-            # ax.xaxis.set_major_formatter(lambda x, pos: print(x, pos))
+        # ax.set_xticklabels(labels[:len(xticks)], ha="right")
+        ax.set_xticklabels(tick_labels_b)
+    # else:
+    # ax.xaxis.set_major_formatter(lambda x, pos: print(x, pos))
+
+
+def _set_colour_theme(ax: Axes, colour: str) -> None:
+    # ticks and tick labels
+    ax.tick_params(axis="both", which="both", colors=colour)
+
+    # axis labels and title
+    ax.xaxis.label.set_color(colour)
+    ax.yaxis.label.set_color(colour)
+
+    # spines (borders)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
