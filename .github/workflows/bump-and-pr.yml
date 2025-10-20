@@ -1,0 +1,69 @@
+name: "Bump ⬆️ library version and create PR"
+on:
+  workflow_dispatch:
+    inputs:
+      bumpType:
+        description: "Bump type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+env:
+  PYTHON_VERSION: 3.12
+
+jobs:
+  bump-n-pr:
+    name: Bump ⬆️ and create a Pull Request with a new library version (${{ inputs.bumpType }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure Git user
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        run: uv sync
+      - name: Bump changelog version
+        id: changelog
+        uses: release-flow/keep-a-changelog-action@v2
+        with:
+          command: bump
+          version: ${{ inputs.bumpType }}
+          tag-prefix: ""
+          keep-unreleased-section: True
+      - name: Run bumpver
+        run: |
+          uv run bumpver update --allow-dirty --${{ inputs.bumpType }} -vvv
+          uv lock
+      - name: Get commit message
+        id: commit_message
+        run: |
+          echo COMMIT_MESSAGE="$(git log -1 --pretty=%B | cat)" >> $GITHUB_OUTPUT
+      - name: Get new version
+        id: new_version
+        run: |
+          uv run bumpver show -n -e | grep CURRENT_VERSION >> $GITHUB_OUTPUT
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: ${{ steps.commit_message.outputs.COMMIT_MESSAGE }}
+          branch: ${{ format('release/{0}', steps.new_version.outputs.CURRENT_VERSION) }}
+          labels: release
+          base: main
+          body: ${{ steps.changelog.outputs.release-notes }}
+          token: ${{ secrets.CICD_PAT_TOKEN }}
+          author: "${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>"
+          committer: "${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>"
+          commit-message: "docs: update CHANGELOG.md"
