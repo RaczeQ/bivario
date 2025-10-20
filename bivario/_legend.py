@@ -22,9 +22,9 @@ DPI = 100
 
 
 def plot_bivariate_legend(
-    ax: Axes,
     values_a: "ValueInput",
     values_b: "ValueInput",
+    ax: Axes | None = None,
     cmap_mode: BIVARIATE_CMAP_MODES = "name",
     cmap_params: ALL_BIVARIATE_MODES_PARAMS | None = None,
     cmap_kwargs: dict[str, Any] | None = None,
@@ -36,11 +36,14 @@ def plot_bivariate_legend(
     dark_mode: bool = False,
     font_colour: str | None = None,
     tick_fontsize_px: int = 10,
-) -> None:
+) -> Axes:
     if (tick_labels_a is not None and tick_labels_b is None) or (
         tick_labels_a is None and tick_labels_b is not None
     ):
         raise ValueError("Both tick labels for a and b values must be either None, or present.")
+
+    if ax is None:
+        _, ax = plt.subplots(dpi=DPI, layout="compressed")
 
     parsed_values_a, parsed_values_b = _validate_values(values_a, values_b)
 
@@ -127,6 +130,8 @@ def plot_bivariate_legend(
         ax.set_xticks(xticks)
         ax.set_xticklabels(tick_labels_b)
         auto_rotate_xticks(ax)
+
+    return ax
 
 
 def _try_parse_label(values: "ValueInput") -> str | None:

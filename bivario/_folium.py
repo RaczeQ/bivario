@@ -389,9 +389,7 @@ def explore_bivariate_data(
     if legend:
         legend_kwargs = legend_kwargs or {}
 
-        fig, ax = plt.subplots(dpi=DPI, layout="compressed")
-        plot_bivariate_legend(
-            ax=ax,
+        ax = plot_bivariate_legend(
             values_a=original_values_a,
             values_b=original_values_b,
             cmap_mode=cmap_mode,
@@ -406,6 +404,8 @@ def explore_bivariate_data(
             dark_mode=dark_mode,
             **legend_kwargs,
         )
+
+        fig = cast("Figure", ax.figure)
 
         FloatBivariateMatplotlibLegend(
             fig=fig,
