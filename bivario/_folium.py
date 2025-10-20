@@ -265,8 +265,8 @@ def explore_bivariate_data(
         legend (bool, optional): Whether to add a bivariate legend to the map. Defaults to True.
         legend_size_px (int, optional): Size of the legend in pixels. Defaults to 200.
         legend_loc (Literal["bl", "br", "tl", "tr"] | None, optional): Location of the legend
-                on the map. Can be "bl" (bottom-left), "br" (bottom-right), "tl" (top-left),
-                or "tr" (top-right). Defaults to "bl".
+            on the map. Can be "bl" (bottom-left), "br" (bottom-right), "tl" (top-left),
+            or "tr" (top-right). Defaults to "bl".
         legend_offset_px (float | tuple[float, float] | None, optional): Offset of the legend
             from the specified location in pixels. If None, uses default offsets based on location.
             Defaults to None.
@@ -282,7 +282,7 @@ def explore_bivariate_data(
     """
     # alpha - yes / no - allow iterable as list of floats between 0 and 1
 
-    for column in [column_a, column_b]:
+    for column in (column_a, column_b):
         if isinstance(column, str) and column not in gdf.columns:
             raise ValueError(f"Column '{column}' not found in GeoDataFrame.")
 
