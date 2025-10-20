@@ -16,7 +16,7 @@ from matplotlib.colors import rgb2hex
 from matplotlib.figure import Figure
 from xyzservices import TileProvider
 
-from bivario._legend import DPI, plot_bivariate_legend
+from bivario._legend import DPI, auto_rotate_xticks, plot_bivariate_legend
 from bivario.cmap import (
     ALL_BIVARIATE_MODES_PARAMS,
     BIVARIATE_CMAP_MODES,
@@ -175,6 +175,8 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
             new_h_in = h_in * scale
 
             fig.set_size_inches(new_w_in, new_h_in)
+
+            auto_rotate_xticks(ax)
 
             # Redraw with new size
             fig.canvas.draw()

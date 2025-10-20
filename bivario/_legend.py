@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import narwhals as nw
 import numpy as np
+from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from PIL import Image
 
@@ -125,6 +126,7 @@ def plot_bivariate_legend(
         xticks = np.linspace(-0.5, legend_cmap.shape[1] - 0.5, len(tick_labels_b))
         ax.set_xticks(xticks)
         ax.set_xticklabels(tick_labels_b)
+        auto_rotate_xticks(ax)
 
 
 def _try_parse_label(values: "ValueInput") -> str | None:
@@ -145,3 +147,22 @@ def _set_colour_theme(ax: Axes, colour: str) -> None:
     # spines (borders)
     for spine in ax.spines.values():
         spine.set_visible(False)
+
+
+def auto_rotate_xticks(ax: Axes, rotation: float = 45) -> None:
+    """Detect overlapping x-tick labels and rotate them if needed."""
+    fig = ax.figure
+    fig.canvas.draw()
+
+    # Get bounding boxes of tick labels in display coords
+    tick_labels = ax.get_xticklabels()
+    bboxes = [label.get_window_extent() for label in tick_labels if label.get_text()]
+
+    overlap = False
+    for i in range(len(bboxes) - 1):
+        if bboxes[i].overlaps(bboxes[i + 1]):
+            overlap = True
+            break
+
+    if overlap:
+        plt.setp(tick_labels, rotation=rotation, ha="right")
