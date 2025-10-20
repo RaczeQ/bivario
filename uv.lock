@@ -49,6 +49,7 @@ dev = [
     { name = "pre-commit" },
     { name = "pyarrow" },
     { name = "pytest" },
+    { name = "pytest-doctestplus" },
     { name = "ruff" },
     { name = "tox-uv" },
 ]
@@ -63,6 +64,7 @@ notebook = [
 ]
 test = [
     { name = "pytest" },
+    { name = "pytest-doctestplus" },
     { name = "tox-uv" },
 ]
 
@@ -85,6 +87,7 @@ dev = [
     { name = "pre-commit", specifier = ">=4.3.0" },
     { name = "pyarrow", specifier = ">=21.0.0" },
     { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-doctestplus", specifier = ">=1.2.1" },
     { name = "ruff", specifier = ">=0.14.0" },
     { name = "tox-uv", specifier = ">=1.29.0" },
 ]
@@ -99,6 +102,7 @@ notebook = [
 ]
 test = [
     { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-doctestplus", specifier = ">=1.2.1" },
     { name = "tox-uv", specifier = ">=1.29.0" },
 ]
 
@@ -1973,6 +1977,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a3/5c/00a0e072241553e1a7496d638deababa67c5058571567b92a7eaa258397c/pytest-8.4.2.tar.gz", hash = "sha256:86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01", size = 1519618, upload-time = "2025-09-04T14:34:22.711Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl", hash = "sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79", size = 365750, upload-time = "2025-09-04T14:34:20.226Z" },
+]
+
+[[package]]
+name = "pytest-doctestplus"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/00/e6/43339f24435cc836336a4a1fecf73c5ce1e4572389116df8d06de7718376/pytest_doctestplus-1.5.0.tar.gz", hash = "sha256:1bfb9ecf0a5a61452abd4c2a5218450d0ddd125a2c241da9e4f7f8ccf6b779fe", size = 49184, upload-time = "2025-10-18T02:01:19.035Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/d3/d029c859fcab2696bce8f14a5dd554f121a6506879d00468b46dafb9adde/pytest_doctestplus-1.5.0-py3-none-any.whl", hash = "sha256:e13e014bab450285b3735de27a1429d4f95bca2efc7a2becd9a863247e91ae4e", size = 25393, upload-time = "2025-10-18T02:01:17.758Z" },
 ]
 
 [[package]]

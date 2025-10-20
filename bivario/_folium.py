@@ -146,8 +146,6 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
                 self.css["top"] = f"{legend_position_y}px"
                 self.css["right"] = f"{legend_position_x}px"
 
-        print(self.css)
-
     def resize_fig(
         self, fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.1
     ) -> None:
@@ -279,6 +277,49 @@ def explore_bivariate_data(
 
     Returns:
         folium.Map: Folium map with the bivariate colormap applied.
+
+    Examples:
+        Plot NYC bike trips with morning starts and ends:
+        >>> from bivario.example_data import nyc_bike_trips
+        >>> from bivario import explore_bivariate_data
+        >>> gdf = nyc_bike_trips()
+        >>> explore_bivariate_data(
+        ...     gdf,
+        ...     column_a="morning_starts",
+        ...     column_b="morning_ends",
+        ... )
+        <folium.folium.Map object at 0x...>
+
+        Plot in dark mode with different colormap and different binning:
+        >>> from bivario.example_data import nyc_bike_trips
+        >>> from bivario import explore_bivariate_data
+        >>> gdf = nyc_bike_trips()
+        >>> explore_bivariate_data(
+        ...     gdf,
+        ...     column_a="morning_starts",
+        ...     column_b="morning_ends",
+        ...     column_a_label="Morning Starts",
+        ...     column_b_label="Morning Ends",
+        ...     dark_mode=True,
+        ...     cmap_params="bubblegum",
+        ...     scheme="Quantiles",
+        ...     k=10,
+        ... )
+        <folium.folium.Map object at 0x...>
+
+        Plot without binning (numerical values) and different legend position:
+        >>> from bivario.example_data import nyc_bike_trips
+        >>> from bivario import explore_bivariate_data
+        >>> gdf = nyc_bike_trips()
+        >>> explore_bivariate_data(
+        ...     gdf,
+        ...     column_a="morning_starts",
+        ...     column_b="afternoon_starts",
+        ...     scheme=False,
+        ...     legend_loc="tr",
+        ...     legend_size_px=300,
+        ... )
+        <folium.folium.Map object at 0x...>
     """
     # alpha - yes / no - allow iterable as list of floats between 0 and 1
 
