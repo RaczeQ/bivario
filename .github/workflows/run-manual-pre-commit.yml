@@ -18,14 +18,12 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-      - uses: pdm-project/setup-pdm@v3
-        name: Setup PDM
-        with:
-          python-version: "3.10"
-          architecture: x64
-          enable-pep582: true
-          cache: true
-          cache-dependency-path: "**/pdm.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        run: |
+          uv sync
+          pre-commit install
       - uses: pre-commit/action@v3.0.0
         with:
           extra_args: --all-files --hook-stage manual --verbose
