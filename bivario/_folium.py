@@ -302,7 +302,7 @@ def explore_bivariate_data(
 
         tiles = "CartoDB DarkMatter" if dark_mode else "CartoDB Positron"
     # If tiles are defined, set dark mode based on tiles if not defined
-    else:
+    elif dark_mode is None:
         dark_mode = False
         tiles_name = ""
         if isinstance(tiles, str):
@@ -394,13 +394,14 @@ def explore_bivariate_data(
             values_b=original_values_b,
             cmap_mode=cmap_mode,
             cmap_params=cmap_params,
+            cmap_kwargs=cmap_kwargs,
             label_a=column_a_label,
             label_b=column_b_label,
             tick_labels_a=tick_labels_a,
             tick_labels_b=tick_labels_b,
             font_colour="#333" if legend_background else None,
             grid_size=legend_size_px if scheme is None else k,
-            **cmap_kwargs,
+            dark_mode=dark_mode,
             **legend_kwargs,
         )
 
