@@ -2,7 +2,7 @@
 Python library for plotting bivariate choropleth maps in Matplotlib and Folium.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/bivario_logo.png"><br/>
+  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/bivario_logo.png" style="max-width: 500px;"><br/>
 </p>
 
 <p align="center">
