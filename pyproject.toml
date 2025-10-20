@@ -55,6 +55,7 @@ notebook = [
 ]
 test = [
     "pytest>=8.4.2",
+    "tox-uv>=1.29.0",
 ]
 
 [build-system]
