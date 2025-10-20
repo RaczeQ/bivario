@@ -354,8 +354,8 @@ def explore_bivariate_data(
         _values_a = binning_a.yb
         _values_b = binning_b.yb
 
-        tick_labels_a = [_l.replace(".0", "") for _l in _format_intervals(binning_a, "{:.1f}")[0]]
-        tick_labels_b = [_l.replace(".0", "") for _l in _format_intervals(binning_b, "{:.1f}")[0]]
+        tick_labels_a = [_l.replace(".0", "") for _l in _format_intervals(binning_a, "{:,.1f}")[0]]
+        tick_labels_b = [_l.replace(".0", "") for _l in _format_intervals(binning_b, "{:,.1f}")[0]]
 
     values_cmap = bivariate_from_params(
         values_a=_values_a,
