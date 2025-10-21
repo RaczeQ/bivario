@@ -17,13 +17,7 @@ from matplotlib.figure import Figure
 from xyzservices import TileProvider
 
 from bivario._legend import DPI, auto_rotate_xticks, plot_bivariate_legend
-from bivario.cmap import (
-    ALL_BIVARIATE_MODES_PARAMS,
-    BIVARIATE_CMAP_MODES,
-    _validate_values,
-    bivariate_from_params,
-    get_default_bivariate_params,
-)
+from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
 
 if TYPE_CHECKING:
     from mapclassify.classifiers import MapClassifier
@@ -193,7 +187,7 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
         fig.savefig(
             buffered, format="svg", transparent=True, dpi=DPI, bbox_inches="tight", pad_inches=0
         )
-        return base64.b64encode(buffered.getvalue()).decode("utf-8")
+        return base64.b64encode(buffered.getvalue()).decode("ascii")
 
     def parse_offset(self, legend_offset_px: float | tuple[float, float]) -> tuple[float, float]:
         """Parse legend offset into x and y components."""
@@ -213,9 +207,7 @@ def explore_bivariate_data(
     scheme: str | None | bool = True,
     k: int = 5,
     tiles: str | folium.TileLayer | TileProvider | None = None,
-    cmap_mode: BIVARIATE_CMAP_MODES = "name",
-    cmap_params: ALL_BIVARIATE_MODES_PARAMS | None = None,
-    cmap_kwargs: dict[str, Any] | None = None,
+    cmap: BivariateColourmap | str | None = None,
     dark_mode: bool | None = None,
     alpha: bool = True,
     alpha_norm_quantile: float = 0.9,
@@ -246,12 +238,8 @@ def explore_bivariate_data(
         tiles (str | folium.TileLayer | TileProvider | None, optional): Tile layer for the map.
             If None, will set based on dark mode - "CartoDB DarkMatter" for the dark mode, and
             "CartoDB Positron" for the light mode. Defaults to None.
-        cmap_mode (BIVARIATE_CMAP_MODES, optional): Bivariate colormap mode to use. Can be
-            "accents", "cmaps", "corners", or "name". Defaults to "name".
-        cmap_params (ALL_BIVARIATE_MODES_PARAMS | None, optional): Parameters for the bivariate
-            colormap. If None, will use default parameters based on the cmap_mode. Defaults to None.
-        cmap_kwargs (dict[str, Any] | None, optional): Additional keyword arguments for the
-            bivariate colormap generation. Defaults to None.
+        cmap (BivariateColourmap | str | None, optional): Bivariate colourmap to use.
+            If None, will load a default one. Defaults to None.
         dark_mode (bool | None, optional): Whether to use dark mode for the map tiles. If None,
             will infer from the tiles if provided, otherwise defaults to False. Defaults to None
         alpha (bool, optional): Whether to apply alpha transparency based on the data values. Will
@@ -301,7 +289,7 @@ def explore_bivariate_data(
         ...     column_a_label="Morning Starts",
         ...     column_b_label="Morning Ends",
         ...     dark_mode=True,
-        ...     cmap_params="bubblegum",
+        ...     cmap="bubblegum",
         ...     scheme="Quantiles",
         ...     k=10,
         ... )
@@ -326,9 +314,6 @@ def explore_bivariate_data(
     for column in (column_a, column_b):
         if isinstance(column, str) and column not in gdf.columns:
             raise ValueError(f"Column '{column}' not found in GeoDataFrame.")
-
-    if cmap_params is None:
-        cmap_params = get_default_bivariate_params(cmap_mode)
 
     original_values_a = gdf[column_a] if isinstance(column_a, str) else column_a
     original_values_b = gdf[column_b] if isinstance(column_b, str) else column_b
@@ -357,10 +342,6 @@ def explore_bivariate_data(
             if keyword in tiles_name:
                 dark_mode = True
                 break
-
-    cmap_kwargs = cmap_kwargs or {}
-    if "dark_mode" not in cmap_kwargs:
-        cmap_kwargs["dark_mode"] = dark_mode
 
     set_alpha = alpha  # now its bool, but can be a list of values, then check if not empty
 
@@ -400,15 +381,11 @@ def explore_bivariate_data(
         tick_labels_a = [_l.replace(".0", "") for _l in _format_intervals(binning_a, "{:,.1f}")[0]]
         tick_labels_b = [_l.replace(".0", "") for _l in _format_intervals(binning_b, "{:,.1f}")[0]]
 
-    values_cmap = bivariate_from_params(
-        values_a=_values_a,
-        values_b=_values_b,
-        mode=cmap_mode,
-        params=cmap_params,
-        **cmap_kwargs,
-    )
+    cmap = get_bivariate_cmap(cmap)
 
-    hex_values = [rgb2hex(values_cmap[i, :]) for i in range(values_cmap.shape[0])]
+    values_cmap = cmap(values_a=_values_a, values_b=_values_b, normalize=True, dark_mode=dark_mode)
+
+    hex_values = [rgb2hex(tuple(values_cmap[i, :])) for i in range(values_cmap.shape[0])]
 
     if "legend" in kwargs:
         kwargs.pop("legend")
@@ -433,9 +410,7 @@ def explore_bivariate_data(
         ax = plot_bivariate_legend(
             values_a=original_values_a,
             values_b=original_values_b,
-            cmap_mode=cmap_mode,
-            cmap_params=cmap_params,
-            cmap_kwargs=cmap_kwargs,
+            cmap=cmap,
             label_a=column_a_label,
             label_b=column_b_label,
             tick_labels_a=tick_labels_a,

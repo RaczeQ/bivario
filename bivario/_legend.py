@@ -7,13 +7,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from PIL import Image
 
-from bivario.cmap import (
-    ALL_BIVARIATE_MODES_PARAMS,
-    BIVARIATE_CMAP_MODES,
-    _validate_values,
-    bivariate_from_params,
-    get_default_bivariate_params,
-)
+from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
 
 if TYPE_CHECKING:
     from bivario.typing import ValueInput
@@ -25,9 +19,7 @@ def plot_bivariate_legend(
     values_a: "ValueInput",
     values_b: "ValueInput",
     ax: Axes | None = None,
-    cmap_mode: BIVARIATE_CMAP_MODES = "name",
-    cmap_params: ALL_BIVARIATE_MODES_PARAMS | None = None,
-    cmap_kwargs: dict[str, Any] | None = None,
+    cmap: BivariateColourmap | str | None = None,
     grid_size: int | None = None,
     label_a: str | None = None,
     label_b: str | None = None,
@@ -50,22 +42,12 @@ def plot_bivariate_legend(
     label_a = label_a or _try_parse_label(values_a) or "Value A"
     label_b = label_b or _try_parse_label(values_b) or "Value B"
 
-    cmap_params = cmap_params or get_default_bivariate_params(cmap_mode)
-
-    cmap_kwargs = cmap_kwargs or {}
-    if "dark_mode" not in cmap_kwargs:
-        cmap_kwargs["dark_mode"] = dark_mode
-
     grid_size = grid_size or 100
     xx, yy = np.mgrid[0:grid_size, 0:grid_size]
 
-    legend_cmap = bivariate_from_params(
-        values_a=xx,
-        values_b=yy,
-        mode=cmap_mode,
-        params=cmap_params,
-        **cmap_kwargs,
-    )
+    cmap = get_bivariate_cmap(cmap)
+
+    legend_cmap = cmap(values_a=xx, values_b=yy, normalize=True, dark_mode=dark_mode)
 
     img = Image.fromarray(np.uint8((legend_cmap) * 255))
 

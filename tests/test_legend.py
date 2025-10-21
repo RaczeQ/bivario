@@ -1,7 +1,7 @@
 """Test legend plotting functionality."""
 
 
-def test_plot_bivariate_legend_importable() -> None:
+def test_plot_bivariate_legend() -> None:
     """Test that plot_bivariate_legend can be run without error."""
     from bivario._legend import plot_bivariate_legend
 

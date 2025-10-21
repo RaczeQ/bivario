@@ -11,4 +11,4 @@ NumericDType: TypeAlias = np.integer | np.floating | np.bool_
 NumericArray: TypeAlias = npt.NDArray[NumericDType]
 ValueInput: TypeAlias = IntoSeries | NumericArray | Iterable[float | int | bool]
 
-BivariateColourmap: TypeAlias = npt.NDArray[np.floating]
+BivariateColourmapArray: TypeAlias = npt.NDArray[np.floating]

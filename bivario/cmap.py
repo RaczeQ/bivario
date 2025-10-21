@@ -6,30 +6,37 @@ Returned values are in RGB colour space as floats in range from 0 to 1.
 Colour operations are done in the OKLab colour space.
 """
 
-from typing import TYPE_CHECKING, Any, Literal, cast
+import abc
+import base64
+import io
+from typing import TYPE_CHECKING, Any, Literal
 
 import narwhals as nw
 import numpy as np
 from colour import Oklab_to_XYZ, XYZ_to_Oklab, XYZ_to_sRGB, sRGB_to_XYZ
-from matplotlib.colors import Colormap, to_rgb
+from matplotlib.colors import Colormap, rgb2hex, to_rgb
 from matplotlib.pyplot import get_cmap
 from matplotlib.typing import ColourType
+from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 
 from bivario.palettes import BIVARIATE_CORNER_PALETTES
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from bivario.typing import BivariateColourmap, NumericArray, ValueInput
+    from bivario.typing import BivariateColourmapArray, NumericArray, ValueInput
 
 NumericKinds = {"b", "i", "u", "f"}
+_BIVAR_REPR_GRID_SIZE = 64
+_BIVAR_REPR_PNG_SIZE = 256
 
 __all__ = [
-    "bivariate_from_cmaps",
-    "bivariate_from_accents",
-    "bivariate_from_corners",
-    "bivariate_from_name",
-    "bivariate_from_params",
+    "AccentsBivariateColourmap",
+    "CornersBivariateColourmap",
+    "MplCmapBivariateColourmap",
+    "NamedBivariateColourmap",
+    "get_bivariate_cmap",
 ]
 
 BIVARIATE_CMAP_MODES = Literal["accents", "cmaps", "corners", "name"]
@@ -40,214 +47,321 @@ ACCENTS_PARAMS = tuple[ColourType, ColourType]
 ALL_BIVARIATE_MODES_PARAMS = str | ACCENTS_PARAMS | CMAPS_PARAMS | CORNERS_PARAMS
 
 
-def bivariate_from_params(
-    values_a: "ValueInput",
-    values_b: "ValueInput",
-    params: ALL_BIVARIATE_MODES_PARAMS,
-    mode: BIVARIATE_CMAP_MODES | None = None,
-    **kwargs: Any,
-) -> "BivariateColourmap":
-    """Generate a 2D bivariate palette."""
-    # can operate on all other functions, used for API usage
+class BivariateColourmap(abc.ABC):
+    """Abstract class for Bivariate Colourmap object."""
 
-    # match types first - detect corners and name
-    if isinstance(params, str):
-        name = params
-        return bivariate_from_name(values_a=values_a, values_b=values_b, name=name, **kwargs)
-    # detected corners
-    elif len(params) == 4:
-        accent_a, accent_b, low, high = params
-        return bivariate_from_corners(
-            values_a=values_a,
-            values_b=values_b,
-            accent_a=accent_a,
-            accent_b=accent_b,
-            low=low,
-            high=high,
+    def __call__(
+        self, values_a: "ValueInput", values_b: "ValueInput", normalize: bool = True, **kwargs: Any
+    ) -> "BivariateColourmapArray":
+        values_a, values_b = _validate_values(values_a, values_b)
+
+        if normalize:
+            values_a = _normalize_values(values_a)
+            values_b = _normalize_values(values_b)
+
+        return self._apply_colours(values_a=values_a, values_b=values_b)
+
+    @abc.abstractmethod
+    def _apply_colours(
+        self, values_a: "NumericArray", values_b: "NumericArray", **kwargs: Any
+    ) -> "BivariateColourmapArray":
+        raise NotImplementedError
+
+    def _repr_png_(self) -> bytes:
+        """Generate a PNG representation of the Colormap."""
+        from bivario import __version__
+
+        xx, yy = np.mgrid[0:_BIVAR_REPR_GRID_SIZE, 0:_BIVAR_REPR_GRID_SIZE]
+
+        cmap_arr = self(xx, yy)
+
+        title = self.__str__()[1:-1]
+        author = f"Bivario v{__version__}, https://github.com/RaczeQ/bivario/"
+        pnginfo = PngInfo()
+        pnginfo.add_text("Title", title)
+        pnginfo.add_text("Description", title)
+        pnginfo.add_text("Author", author)
+        pnginfo.add_text("Software", author)
+
+        png_bytes = io.BytesIO()
+
+        Image.fromarray(np.uint8(cmap_arr * 255)).transpose(1).resize(
+            size=(_BIVAR_REPR_PNG_SIZE, _BIVAR_REPR_PNG_SIZE)  # , resample=0
+        ).save(png_bytes, format="png", pnginfo=pnginfo)
+
+        return png_bytes.getvalue()
+
+    def _repr_html_(self) -> str:
+        """Generate an HTML representation of the Colormap."""
+        png_bytes = self._repr_png_()
+        png_base64 = base64.b64encode(png_bytes).decode("ascii")
+
+        name = self.__str__()[1:-1]
+
+        return (
+            '<div style="vertical-align: middle;">'
+            f"<strong>{name}</strong> "
+            "</div>"
+            '<div class="cmap"><img '
+            f'alt="{name}" '
+            f'title="{name}" '
+            'style="border: 1px solid #555;" '
+            f'src="data:image/png;base64,{png_base64}"></div>'
+            '<div style="vertical-align: middle; '
+            f"max-width: {_BIVAR_REPR_PNG_SIZE + 2}px; "
+            'display: flex; justify-content: space-between;">'
+            "</div>"
         )
 
-    match mode:
-        case "accents":
-            accent_a, accent_b = cast("ACCENTS_PARAMS", params)
-            return bivariate_from_accents(
-                values_a=values_a, values_b=values_b, accent_a=accent_a, accent_b=accent_b, **kwargs
-            )
-        case "cmaps":
-            cmap_a, cmap_b = cast("CMAPS_PARAMS", params)  # type: ignore[redundant-cast]
-            return bivariate_from_cmaps(
-                values_a=values_a, values_b=values_b, cmap_a=cmap_a, cmap_b=cmap_b, **kwargs
-            )
-        case "corners":
-            accent_a, accent_b, low, high = cast("CORNERS_PARAMS", params)
-            return bivariate_from_corners(
-                values_a=values_a,
-                values_b=values_b,
-                accent_a=accent_a,
-                accent_b=accent_b,
-                low=low,
-                high=high,
-            )
-        case "name":
-            name = cast("str", params)
-            return bivariate_from_name(values_a=values_a, values_b=values_b, name=name, **kwargs)
 
-        case _:
-            raise ValueError(f"Unknown bivariate cmap mode: '{mode}'.")
+class MplCmapBivariateColourmap(BivariateColourmap):
+    """BivariateColourmap defined by 2 Matplotlib colourmaps."""
 
+    def __init__(self, cmap_a: str | Colormap, cmap_b: str | Colormap) -> None:
+        """
+        Initialise MplCmapBivariateColourmap.
 
-def get_default_bivariate_params(mode: BIVARIATE_CMAP_MODES) -> ALL_BIVARIATE_MODES_PARAMS:
-    match mode:
-        case "accents":
-            accent_a = (0.95, 0.40, 0.20)
-            accent_b = (0.10, 0.70, 0.65)
-            return (accent_a, accent_b)
-        case "cmaps":
-            return ("Oranges", "Blues")
-        case "corners":
-            loaded_palette = BIVARIATE_CORNER_PALETTES["electric_neon"]
-            return (
-                loaded_palette.accent_a,
-                loaded_palette.accent_b,
-                loaded_palette.low,
-                loaded_palette.high,
-            )
-        case "name":
-            return "electric_neon"
+        Args:
+            cmap_a (str | Colormap): First colourmap.
+            cmap_b (str | Colormap): Second colourmap.
+        """
+        self.cmap_a = get_cmap(cmap_a)
+        self.cmap_b = get_cmap(cmap_b)
 
-        case _:
-            raise ValueError(f"Unknown bivariate cmap mode: '{mode}'.")
+    def __str__(self) -> str:
+        """Full representation of the colourmap."""
+        return f"<{self.__class__.__name__} ({self.cmap_a.name}, {self.cmap_b.name})>"
 
+    def _apply_colours(
+        self, values_a: "NumericArray", values_b: "NumericArray", **kwargs: Any
+    ) -> "BivariateColourmapArray":
+        va_colour = self.cmap_a(values_a)[..., :3]
+        vb_colour = self.cmap_b(values_b)[..., :3]
 
-def bivariate_from_cmaps(
-    values_a: "ValueInput",
-    values_b: "ValueInput",
-    cmap_a: str | Colormap,
-    cmap_b: str | Colormap,
-) -> "BivariateColourmap":
-    """Blend two 1D colourmaps into a 2D bivariate palette."""
-    _values_a, _values_b = _validate_values(values_a, values_b)
+        va_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(va_colour))
+        vb_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(vb_colour))
 
-    va_plot = _normalize_values(_values_a)
-    vb_plot = _normalize_values(_values_b)
+        z_colour = np.zeros_like(va_colour, dtype=float)
 
-    cmap_a = get_cmap(cmap_a)
-    cmap_b = get_cmap(cmap_b)
+        it = np.nditer(
+            np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=[["readwrite"]]
+        )
+        while not it.finished:
+            pos_a, pos_b = values_a[it.multi_index], values_b[it.multi_index]
 
-    va_colour = cmap_a(va_plot)[..., :3]
-    vb_colour = cmap_b(vb_plot)[..., :3]
+            loc_diff = pos_b - pos_a
+            lerp_t = (loc_diff + 1) / 2
 
-    va_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(va_colour))
-    vb_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(vb_colour))
+            colour_a = va_colour_oklab[it.multi_index]
+            colour_b = vb_colour_oklab[it.multi_index]
 
-    z_colour = np.zeros_like(va_colour, dtype=float)
+            mixed_colour = _lerp(colour_a, colour_b, lerp_t)
+            mixed_colour_rgb = np.clip(XYZ_to_sRGB(Oklab_to_XYZ(mixed_colour)), 0, 1)
 
-    it = np.nditer(np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=[["readwrite"]])
-    while not it.finished:
-        pos_a, pos_b = va_plot[it.multi_index], vb_plot[it.multi_index]
+            z_colour[it.multi_index] = mixed_colour_rgb
+            it.iternext()
 
-        loc_diff = pos_b - pos_a
-        lerp_t = (loc_diff + 1) / 2
-
-        colour_a = va_colour_oklab[it.multi_index]
-        colour_b = vb_colour_oklab[it.multi_index]
-
-        mixed_colour = _lerp(colour_a, colour_b, lerp_t)
-        mixed_colour_rgb = np.clip(XYZ_to_sRGB(Oklab_to_XYZ(mixed_colour)), 0, 1)
-
-        z_colour[it.multi_index] = mixed_colour_rgb
-        it.iternext()
-
-    return z_colour
+        return z_colour
 
 
-def bivariate_from_corners(
-    values_a: "ValueInput",
-    values_b: "ValueInput",
-    accent_a: ColourType,
-    accent_b: ColourType,
-    low: ColourType,
-    high: ColourType,
-    # accent_a=(0.95, 0.40, 0.20),
-    # accent_b=(0.10, 0.70, 0.65),
-    # low=(0.95, 0.85, 0.55),
-    # high=(0.15, 0.20, 0.50),
-) -> "BivariateColourmap":
-    """Generate a 2D bivariate palette from four RGB values."""
-    _values_a, _values_b = _validate_values(values_a, values_b)
+class CornersBivariateColourmap(BivariateColourmap):
+    """BivariateColourmap defined by 4 corners."""
 
-    va_plot = _normalize_values(_values_a)
-    vb_plot = _normalize_values(_values_b)
+    def __init__(
+        self, accent_a: ColourType, accent_b: ColourType, low: ColourType, high: ColourType
+    ) -> None:
+        """
+        Initialise CornersBivariateColourmap.
 
-    z_colour = np.zeros((*va_plot.shape, 3), dtype=float)
+        Args:
+            accent_a (ColourType): First colour accent.
+            accent_b (ColourType): Second colour accent.
+            low (ColourType): Low values colour.
+            high (ColourType): High values colour.
+        """
+        self.a_colour = to_rgb(accent_a)
+        self.b_colour = to_rgb(accent_b)
+        self.low_colour = to_rgb(low)
+        self.high_colour = to_rgb(high)
 
-    a_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(to_rgb(accent_a))))
-    b_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(to_rgb(accent_b))))
-    low_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(to_rgb(low))))
-    high_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(to_rgb(high))))
-
-    it = np.nditer(np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=[["readwrite"]])
-    while not it.finished:
-        pos_a, pos_b = va_plot[it.multi_index], vb_plot[it.multi_index]
-
-        first_colour = _lerp(low_colour_oklab, a_colour_oklab, pos_a)
-        second_colour = _lerp(b_colour_oklab, high_colour_oklab, pos_a)
-        middle_colour = _lerp(first_colour, second_colour, pos_b)
-
-        mixed_colour_rgb = np.clip(XYZ_to_sRGB(Oklab_to_XYZ(middle_colour)), 0, 1)
-
-        z_colour[it.multi_index] = mixed_colour_rgb
-        it.iternext()
-
-    return z_colour
-
-
-def bivariate_from_accents(
-    values_a: "ValueInput",
-    values_b: "ValueInput",
-    accent_a: ColourType,
-    accent_b: ColourType,
-    *,
-    dark_mode: bool = False,
-    light: ColourType = (1, 1, 1),
-    dark: ColourType = (0.15, 0.15, 0.15),
-) -> "BivariateColourmap":
-    """Blend two accent colours into a 2D bivariate palette."""
-    if dark_mode:
-        return bivariate_from_corners(values_a, values_b, accent_a, accent_b, low=dark, high=light)
-
-    return bivariate_from_corners(values_a, values_b, accent_a, accent_b, low=light, high=dark)
-
-
-def bivariate_from_name(
-    values_a: "ValueInput",
-    values_b: "ValueInput",
-    name: str,
-    dark_mode: bool = False,
-    invert_accents: bool = False,
-) -> "BivariateColourmap":
-    """Load bivariate palette from name."""
-    loaded_palette = BIVARIATE_CORNER_PALETTES.get(name)
-    if loaded_palette is None:
-        raise ValueError(
-            f"Unrecognized palette: {name}. "
-            f"Available palettes: {list(BIVARIATE_CORNER_PALETTES.keys())}."
+    def __str__(self) -> str:
+        """Full representation of the colourmap."""
+        return (
+            f"<{self.__class__.__name__} (Accent A: {rgb2hex(self.a_colour)}, "
+            f"Accent B: {rgb2hex(self.b_colour)}, Low: {rgb2hex(self.low_colour)}, "
+            f"High: {rgb2hex(self.high_colour)})>"
         )
 
-    accent_a, accent_b = loaded_palette.accent_a, loaded_palette.accent_b
-    if invert_accents:
-        accent_a, accent_b = accent_b, accent_a
+    def _apply_colours(
+        self, values_a: "NumericArray", values_b: "NumericArray", **kwargs: Any
+    ) -> "BivariateColourmapArray":
+        z_colour = np.zeros((*values_a.shape, 3), dtype=float)
 
-    low, high = loaded_palette.low, loaded_palette.high
-    if dark_mode:
-        low, high = high, low
+        a_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(self.a_colour)))
+        b_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(self.b_colour)))
+        low_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(self.low_colour)))
+        high_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(self.high_colour)))
 
-    return bivariate_from_corners(
-        values_a=values_a,
-        values_b=values_b,
-        accent_a=accent_a,
-        accent_b=accent_b,
-        low=low,
-        high=high,
+        it = np.nditer(
+            np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=[["readwrite"]]
+        )
+        while not it.finished:
+            pos_a, pos_b = values_a[it.multi_index], values_b[it.multi_index]
+
+            first_colour = _lerp(low_colour_oklab, a_colour_oklab, pos_a)
+            second_colour = _lerp(b_colour_oklab, high_colour_oklab, pos_a)
+            middle_colour = _lerp(first_colour, second_colour, pos_b)
+
+            mixed_colour_rgb = np.clip(XYZ_to_sRGB(Oklab_to_XYZ(middle_colour)), 0, 1)
+
+            z_colour[it.multi_index] = mixed_colour_rgb
+            it.iternext()
+
+        return z_colour
+
+
+class NamedBivariateColourmap(BivariateColourmap):
+    """BivariateColourmap loaded from predefined palettes."""
+
+    def __init__(self, name: str, invert_accents: bool = False, dark_mode: bool = False) -> None:
+        """
+        Initialise NamedBivariateColourmap.
+
+        Args:
+            name (str): Name of the predefined palette.
+            invert_accents (bool, optional): Whether to swap two colour accents.
+                Can also be set during __call__. Defaults to False.
+            dark_mode (bool, optional): Whether to use palette in dark mode.
+                Swaps light and dark corners (low and high) for better readability on dark
+                background. Can also be set during __call__. Defaults to False.
+        """
+        self.palette_name = name
+        loaded_palette = BIVARIATE_CORNER_PALETTES.get(name)
+        if loaded_palette is None:
+            raise ValueError(
+                f"Unrecognized palette: {name}. "
+                f"Available palettes: {list(BIVARIATE_CORNER_PALETTES.keys())}."
+            )
+
+        self.accent_a, self.accent_b = loaded_palette.accent_a, loaded_palette.accent_b
+        self.low, self.high = loaded_palette.low, loaded_palette.high
+        self.invert_accents = invert_accents
+        self.dark_mode = dark_mode
+
+    def __str__(self) -> str:
+        """Full representation of the colourmap."""
+        return f"<{self.__class__.__name__} ({self.palette_name})>"
+
+    def _apply_colours(
+        self,
+        values_a: "NumericArray",
+        values_b: "NumericArray",
+        invert_accents: bool | None = None,
+        dark_mode: bool | None = None,
+        **kwargs: Any,
+    ) -> "BivariateColourmapArray":
+        dark_mode = dark_mode if self.dark_mode is None else self.dark_mode
+        invert_accents = invert_accents if self.invert_accents is None else self.invert_accents
+
+        accent_a, accent_b = self.accent_a, self.accent_b
+
+        if invert_accents:
+            accent_a, accent_b = accent_b, accent_a
+
+        low, high = self.low, self.high
+        if dark_mode:
+            low, high = high, low
+
+        return CornersBivariateColourmap(
+            accent_a=accent_a, accent_b=accent_b, low=low, high=high
+        )._apply_colours(values_a, values_b)
+
+
+class AccentsBivariateColourmap(BivariateColourmap):
+    """BivariateColourmap defined by 2 colour accents."""
+
+    def __init__(
+        self,
+        accent_a: ColourType,
+        accent_b: ColourType,
+        dark_mode: bool = False,
+        light: ColourType | None = None,
+        dark: ColourType | None = None,
+    ) -> None:
+        """
+        Initialise AccentsBivariateColourmap.
+
+        Args:
+            accent_a (ColourType): First colour accent.
+            accent_b (ColourType): Second colour accent.
+            dark_mode (bool, optional): Whether to use palette in dark mode.
+                Swaps light and dark corners (low and high) for better readability on dark
+                background. Can also be set during __call__. Defaults to False.
+            light (ColourType | None, optional): light corner colour.
+                If None, will be (1, 1, 1). Defaults to None.
+            dark (ColourType | None, optional): Dark corner colour.
+                If None will be (0.15, 0.15, 0.15). Defaults to None.
+        """
+        self.accent_a = accent_a
+        self.accent_b = accent_b
+        self.light = light or (1, 1, 1)
+        self.dark = dark or (0.15, 0.15, 0.15)
+        self.dark_mode = dark_mode
+
+    def __str__(self) -> str:
+        """Full representation of the colourmap."""
+        return (
+            f"<{self.__class__.__name__} (Accent A: {rgb2hex(self.accent_a)}, "
+            f"Accent B: {rgb2hex(self.accent_b)}, Light: {rgb2hex(self.light)}, "
+            f"Dark: {rgb2hex(self.dark)})>"
+        )
+
+    def _apply_colours(
+        self,
+        values_a: "NumericArray",
+        values_b: "NumericArray",
+        dark_mode: bool | None = None,
+        **kwargs: Any,
+    ) -> "BivariateColourmapArray":
+        dark_mode = dark_mode if self.dark_mode is None else self.dark_mode
+
+        accent_a, accent_b = self.accent_a, self.accent_b
+
+        low = self.dark if dark_mode else self.light
+        high = self.light if dark_mode else self.dark
+
+        return CornersBivariateColourmap(
+            accent_a=accent_a, accent_b=accent_b, low=low, high=high
+        )._apply_colours(values_a, values_b)
+
+
+def get_bivariate_cmap(cmap: str | BivariateColourmap | None = None) -> BivariateColourmap:
+    """
+    Return a BivariateColourmap object.
+
+    Args:
+        cmap (str | BivariateColourmap | None, optional): Colourmap name or object.
+            If None, will load defalt named palette - electric_neon. Defaults to None.
+
+    Raises:
+        TypeError: If provided cmap object is of unknown type.
+
+    Returns:
+        BivariateColourmap: Parsed BivariateColourmap object.
+    """
+    # get the default color map
+    if cmap is None:
+        cmap = "electric_neon"
+
+    # if the user passed in a BivariateColourmap, simply return it
+    if isinstance(cmap, BivariateColourmap):
+        return cmap
+    if isinstance(cmap, str):
+        return NamedBivariateColourmap(cmap)
+
+    raise TypeError(
+        "get_bivariate_cmap expects None or an instance of a str or BivariateColourmap. "
+        f"you passed {cmap!r} of type {type(cmap)}"
     )
 
 
