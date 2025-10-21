@@ -82,25 +82,25 @@ Palettes in `bivario` are created by blending 2 or 4 colours in a 2D space using
 `bivario` has 4 modes of Bivariate colourmaps:
 - AccentsBivariateColourmap - defined by two accent colours and a light and a dark colour.
 <p align="left">
-  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/accent_repr.png"><br/>
+  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/accent_repr.png" height=200><br/>
 </p>
 - CornersBivariateColourmap - defined by 4 corner colours (accent a/b, low value and high value)
 <p align="left">
-  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/corner_repr.png"><br/>
+  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/corner_repr.png" height=200><br/>
 </p>
 - MplCmapBivariateColourmap - defined by 2 Matplotlib colourmaps along axis X and Y
 <p align="left">
-  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/mpl_repr.png"><br/>
+  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/mpl_repr.png" height=200><br/>
 </p>
 - NamedBivariateColourmap - can load predefined palette from string name
 <p align="left">
-  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/named_repr.png"><br/>
+  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/named_repr.png" height=200><br/>
 </p>
 
 ## Available palettes
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/available_palettes.jpg"><br/>
+  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/available_palettes.png"><br/>
 </p>
 
 You can load these palettes by passing a string name to the `cmap` attribute, or load a `NamedBivariateColourmap` object:
