@@ -59,7 +59,7 @@ class BivariateColourmap(abc.ABC):
             values_a = _normalize_values(values_a)
             values_b = _normalize_values(values_b)
 
-        return self._apply_colours(values_a=values_a, values_b=values_b)
+        return self._apply_colours(values_a=values_a, values_b=values_b, **kwargs)
 
     @abc.abstractmethod
     def _apply_colours(
@@ -260,8 +260,8 @@ class NamedBivariateColourmap(BivariateColourmap):
         dark_mode: bool | None = None,
         **kwargs: Any,
     ) -> "BivariateColourmapArray":
-        dark_mode = dark_mode if self.dark_mode is None else self.dark_mode
-        invert_accents = invert_accents if self.invert_accents is None else self.invert_accents
+        dark_mode = dark_mode if dark_mode is not None else self.dark_mode
+        invert_accents = invert_accents if invert_accents is not None else self.invert_accents
 
         accent_a, accent_b = self.accent_a, self.accent_b
 
@@ -323,7 +323,7 @@ class AccentsBivariateColourmap(BivariateColourmap):
         dark_mode: bool | None = None,
         **kwargs: Any,
     ) -> "BivariateColourmapArray":
-        dark_mode = dark_mode if self.dark_mode is None else self.dark_mode
+        dark_mode = dark_mode if dark_mode is not None else self.dark_mode
 
         accent_a, accent_b = self.accent_a, self.accent_b
 
