@@ -1,3 +1,5 @@
+"""Bivariate folium maps module."""
+
 import base64
 import io
 import warnings
@@ -16,8 +18,8 @@ from matplotlib.colors import rgb2hex
 from matplotlib.figure import Figure
 from xyzservices import TileProvider
 
-from bivario._legend import DPI, auto_rotate_xticks, plot_bivariate_legend
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
+from bivario.legend import DPI, auto_rotate_xticks, plot_bivariate_legend
 
 if TYPE_CHECKING:
     from mapclassify.classifiers import MapClassifier

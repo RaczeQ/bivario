@@ -1,3 +1,5 @@
+"""Bivariate legend plotting module."""
+
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, cast
 

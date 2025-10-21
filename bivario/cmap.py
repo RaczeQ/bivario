@@ -341,7 +341,7 @@ def get_bivariate_cmap(cmap: str | BivariateColourmap | None = None) -> Bivariat
 
     Args:
         cmap (str | BivariateColourmap | None, optional): Colourmap name or object.
-            If None, will load defalt named palette - electric_neon. Defaults to None.
+            If None, will load defalt named palette - rosewood_pine. Defaults to None.
 
     Raises:
         TypeError: If provided cmap object is of unknown type.
@@ -351,7 +351,7 @@ def get_bivariate_cmap(cmap: str | BivariateColourmap | None = None) -> Bivariat
     """
     # get the default color map
     if cmap is None:
-        cmap = "electric_neon"
+        cmap = "rosewood_pine"
 
     # if the user passed in a BivariateColourmap, simply return it
     if isinstance(cmap, BivariateColourmap):

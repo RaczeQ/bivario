@@ -13,7 +13,7 @@ def test_bivariate_from_name_colourmap() -> None:
     """Test that NamedBivariateColourmap can be run without error."""
     from bivario import NamedBivariateColourmap
 
-    cmap = NamedBivariateColourmap("electric_neon")
+    cmap = NamedBivariateColourmap("rosewood_pine")
     cmap(values_a=[0, 1], values_b=[0, 1])
 
 
