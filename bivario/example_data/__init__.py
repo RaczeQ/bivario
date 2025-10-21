@@ -36,6 +36,7 @@ def nyc_bike_trips() -> gpd.GeoDataFrame:
         ... )
         <folium.folium.Map object at 0x...>
     """
-    data_path = Path(__file__).parent / "nyc_bike_trips.parquet"
-    gdf = gpd.read_parquet(data_path)
+    data_path = Path(__file__).parent / "nyc_bike_trips.csv.gz"
+    df = gpd.pd.read_csv(data_path)
+    gdf = gpd.GeoDataFrame(df, geometry=gpd.GeoSeries.from_wkt(df["geometry"], crs=4326))
     return gdf
