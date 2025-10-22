@@ -168,8 +168,6 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
             new_w_in = w_in * scale
             new_h_in = h_in * scale
 
-            print(w_in, h_in, scale, new_w_in, new_h_in)
-
             fig.set_size_inches(new_w_in, new_h_in)
 
             auto_rotate_xticks(ax)

@@ -147,8 +147,6 @@ def auto_rotate_xticks(ax: Axes, rotation: float = 45) -> None:
     tick_labels = ax.get_xticklabels()
     bboxes = [label.get_window_extent() for label in tick_labels if label.get_text()]
 
-    print(tick_labels)
-
     overlap = False
     for i in range(len(bboxes) - 1):
         if bboxes[i].overlaps(bboxes[i + 1]):
