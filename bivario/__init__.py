@@ -15,7 +15,7 @@ from bivario.folium import explore_bivariate_data
 from bivario.legend import plot_bivariate_legend
 
 __app_name__ = "bivario"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "AccentsBivariateColourmap",
