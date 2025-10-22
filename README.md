@@ -17,15 +17,6 @@ Python library for plotting bivariate choropleth maps in Matplotlib and Folium.
     <a href="https://pypi.org/project/bivario" target="_blank"><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/bivario"></a>
 </p>
 
----
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/bivario_combined.jpg"><br/>
-  <span>Example of a Folium map in light and dark modes.</span>
-</p>
-
----
-
 # Installation
 
 With pip:
@@ -40,7 +31,13 @@ uv add bivario
 
 # Usage
 
-Simple Folium map
+<p align="center">
+  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/bivario_combined.jpg"><br/>
+  <span>Example of a Folium map in light and dark modes.</span>
+</p>
+
+Simple Folium map:
+
 ```python
 from bivario import explore_bivariate_data
 from bivario.example_data import nyc_bike_trips
@@ -51,6 +48,7 @@ explore_bivariate_data(
 ```
 
 In dark mode:
+
 ```python
 from bivario import explore_bivariate_data
 from bivario.example_data import nyc_bike_trips
@@ -64,6 +62,7 @@ explore_bivariate_data(
 ```
 
 Use other palette:
+
 ```python
 from bivario import explore_bivariate_data
 from bivario.example_data import nyc_bike_trips
@@ -75,6 +74,33 @@ explore_bivariate_data(
     cmap="bubblegum"
 )
 ```
+
+Set numerical mode (disable bucketing):
+
+> [!NOTE]
+> By default, map is created using `Mapclassify` library with `NaturalBreaks` method to split data into 5 categories.
+> Method and number of buckets can be changed or disabled completely.
+
+```python
+from bivario import explore_bivariate_data
+from bivario.example_data import nyc_bike_trips
+
+explore_bivariate_data(
+    nyc_bike_trips(),
+    column_a="morning_starts",
+    column_b="morning_ends",
+    dark_mode=True,
+    cmap="late_sunset",
+    scheme=False, # or set to None
+    legend_size_px=300,
+)
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/numeric_map.jpg"><br/>
+  <span>Example of a Folium map in a numerical mode.</span>
+</p>
+
 # Bivariate colourmaps
 
 Palettes in `bivario` are created by blending 2 or 4 colours in a 2D space using OKLab colour space. The operations on input and output are done in RGB, an internally are transformed into OKLab values using `colour-science` library.

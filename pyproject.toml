@@ -1,6 +1,6 @@
 [project]
 name = "bivario"
-version = "0.2.0"
+version = "0.1.0"
 description = "Python library for plotting bivariate choropleth maps"
 readme = "README.md"
 authors = [
@@ -129,7 +129,7 @@ close-quotes-on-newline = true
 wrap-one-line = true
 
 [tool.bumpver]
-current_version = "0.2.0"
+current_version = "0.1.0"
 version_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
 commit_message = "chore(CI/CD): bump version {old_version} -> {new_version}"
 commit = true

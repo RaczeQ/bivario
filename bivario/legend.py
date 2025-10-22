@@ -37,7 +37,7 @@ def plot_bivariate_legend(
         raise ValueError("Both tick labels for a and b values must be either None, or present.")
 
     if ax is None:
-        _, ax = plt.subplots(dpi=DPI, layout="compressed")
+        _, ax = plt.subplots(figsize=(8, 8), dpi=DPI, layout="compressed")
 
     parsed_values_a, parsed_values_b = _validate_values(values_a, values_b)
 
