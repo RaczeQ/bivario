@@ -200,14 +200,17 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
         return (legend_position_x, legend_position_y)
 
 
+SCHEME_TYPE = str | None | bool
+
+
 def explore_bivariate_data(
     gdf: gpd.GeoDataFrame,
     column_a: "str | ValueInput",
     column_b: "str | ValueInput",
     column_a_label: str | None = None,
     column_b_label: str | None = None,
-    scheme: str | None | bool = True,
-    k: int = 5,
+    scheme: SCHEME_TYPE | tuple[SCHEME_TYPE, SCHEME_TYPE] = True,
+    k: int | tuple[int, int] = 5,
     tiles: str | folium.TileLayer | TileProvider | None = None,
     cmap: BivariateColourmap | str | None = None,
     dark_mode: bool | None = None,
@@ -233,10 +236,12 @@ def explore_bivariate_data(
             Defaults to None.
         column_b_label (str | None, optional): Label for column b. If None, will use column name.
             Defaults to None.
-        scheme (str | None | bool, optional): Mapclassify binning scheme for the data. If True, uses
-            "NaturalBreaks". If False, no binning is applied. If str, uses the specified scheme.
-            If None, no binning is applied. Defaults to True.
-        k (int, optional): Number of classes for binning. Defaults to 5.
+        scheme (str | None | bool | tuple, optional): Mapclassify binning scheme for the data.
+            If True, uses "NaturalBreaks". If False, no binning is applied.
+            If str, uses the specified scheme. If None, no binning is applied. Can also define
+            two different values for columns a and b. Defaults to True.
+        k (int | tuple[int, int], optional): Number of classes for binning. Can also define two
+            different values for columns a and b. Defaults to 5.
         tiles (str | folium.TileLayer | TileProvider | None, optional): Tile layer for the map.
             If None, will set based on dark mode - "CartoDB DarkMatter" for the dark mode, and
             "CartoDB Positron" for the light mode. Defaults to None.
@@ -370,17 +375,29 @@ def explore_bivariate_data(
     tick_labels_a = None
     tick_labels_b = None
 
-    if isinstance(scheme, bool):
-        scheme = "NaturalBreaks" if scheme else None
+    if isinstance(scheme, (tuple, list)):
+        scheme_a, scheme_b = scheme
+    else:
+        scheme_a = scheme_b = scheme
 
-    if scheme is not None:
-        binning_a = cast("MapClassifier", classify(_values_a, scheme=scheme, k=k))
-        binning_b = cast("MapClassifier", classify(_values_b, scheme=scheme, k=k))
+    if isinstance(k, (tuple, list)):
+        k_a, k_b = k
+    else:
+        k_a = k_b = k
 
+    if isinstance(scheme_a, bool):
+        scheme_a = "NaturalBreaks" if scheme_a else None
+    if isinstance(scheme_b, bool):
+        scheme_b = "NaturalBreaks" if scheme_b else None
+
+    if scheme_a is not None:
+        binning_a = cast("MapClassifier", classify(_values_a, scheme=scheme_a, k=k_a))
         _values_a = binning_a.yb
-        _values_b = binning_b.yb
-
         tick_labels_a = [_l.replace(".0", "") for _l in _format_intervals(binning_a, "{:,.1f}")[0]]
+
+    if scheme_b is not None:
+        binning_b = cast("MapClassifier", classify(_values_b, scheme=scheme_b, k=k_b))
+        _values_b = binning_b.yb
         tick_labels_b = [_l.replace(".0", "") for _l in _format_intervals(binning_b, "{:,.1f}")[0]]
 
     cmap = get_bivariate_cmap(cmap)
@@ -409,6 +426,14 @@ def explore_bivariate_data(
     if legend:
         legend_kwargs = legend_kwargs or {}
 
+        grid_size: int | tuple[int, int]
+        if scheme_a is scheme_b is None:
+            grid_size = legend_size_px
+        else:
+            grid_size_y = legend_size_px if scheme_a is None else k_a
+            grid_size_x = legend_size_px if scheme_b is None else k_b
+            grid_size = (grid_size_x, grid_size_y)
+
         ax = plot_bivariate_legend(
             values_a=original_values_a,
             values_b=original_values_b,
@@ -418,7 +443,7 @@ def explore_bivariate_data(
             tick_labels_a=tick_labels_a,
             tick_labels_b=tick_labels_b,
             font_colour="#333" if legend_background else None,
-            grid_size=legend_size_px if scheme is None else k,
+            grid_size=grid_size,
             dark_mode=dark_mode,
             **legend_kwargs,
         )

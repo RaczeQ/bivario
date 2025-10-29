@@ -22,7 +22,7 @@ def plot_bivariate_legend(
     values_b: "ValueInput",
     ax: Axes | None = None,
     cmap: BivariateColourmap | str | None = None,
-    grid_size: int | None = None,
+    grid_size: int | tuple[int, int] | None = None,
     label_a: str | None = None,
     label_b: str | None = None,
     tick_labels_a: list[Any] | None = None,
@@ -31,11 +31,43 @@ def plot_bivariate_legend(
     font_colour: str | None = None,
     tick_fontsize_px: int = 10,
 ) -> Axes:
-    if (tick_labels_a is not None and tick_labels_b is None) or (
-        tick_labels_a is None and tick_labels_b is not None
-    ):
-        raise ValueError("Both tick labels for a and b values must be either None, or present.")
+    """
+    Plot bivariate 2D legend using Matplotlib.
 
+    Generates a 2D matrix of values and uses imshow function to display it.
+
+    Args:
+        values_a (ValueInput): List or array of values for first variable.
+            Will be assigned to the Y axis.
+        values_b (ValueInput): List or array of values for second variable.
+            Will be assigned to the X axis.
+        ax (Axes | None, optional): Matplotlib axis to plot legend on. If None, will be created.
+            Defaults to None.
+        cmap (BivariateColourmap | str | None, optional): Bivariate colourmap to use.
+            If None, will load a default one. Defaults to None.
+        grid_size (int | tuple[int, int] | None, optional): Number of pixels in the legend grid.
+            Can define two different values for X and Y axis (in this order).
+            If None, will default to 100. Defaults to None.
+        label_a (str | None, optional): Label to use for the first variable (Y axis).
+            If None, will try to read series name, or defaults to "Value A".
+            Defaults to None.
+        label_b (str | None, optional): Label to use for the first variable (X axis).
+            If None, will try to read series name, or defaults to "Value B".
+            Defaults to None.
+        tick_labels_a (list[Any] | None, optional): List of predefined ticks to use for the first
+            variable (Y axis). Useful if binning has been applied. Defaults to None.
+        tick_labels_b (list[Any] | None, optional): List of predefined ticks to use for the first
+            variable (X axis). Useful if binning has been applied. Defaults to None.
+        dark_mode (bool, optional): Whether to use dark mode to select a proper order of colours in
+            the colourmap. Defaults to False.
+        font_colour (str | None, optional): Font colour for the labels and ticks. If None, will be
+            selected based on dark_mode value - white or black. Defaults to None.
+        tick_fontsize_px (int, optional): Size of the ticksize and labels font in pixels.
+            Defaults to 10.
+
+    Returns:
+        Axes: Matplotlib axes with plotted legend.
+    """
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 8), dpi=DPI, layout="compressed")
 
@@ -44,8 +76,12 @@ def plot_bivariate_legend(
     label_a = label_a or _try_parse_label(values_a) or "Value A"
     label_b = label_b or _try_parse_label(values_b) or "Value B"
 
-    grid_size = grid_size or 100
-    xx, yy = np.mgrid[0:grid_size, 0:grid_size]
+    if isinstance(grid_size, (tuple, list)):
+        grid_size_y, grid_size_x = grid_size
+    else:
+        grid_size_y = grid_size_x = grid_size or 100
+
+    xx, yy = np.mgrid[0:grid_size_x, 0:grid_size_y]
 
     cmap = get_bivariate_cmap(cmap)
 
@@ -57,18 +93,29 @@ def plot_bivariate_legend(
 
     colour = font_colour or ("white" if dark_mode else "black")
     _set_colour_theme(ax, colour)
-    y_min = parsed_values_a.min()
-    y_max = parsed_values_a.max()
-    x_min = parsed_values_b.min()
-    x_max = parsed_values_b.max()
+    if tick_labels_a is None:
+        y_min = parsed_values_a.min()
+        y_max = parsed_values_a.max()
+    else:
+        y_min = 0
+        y_max = legend_cmap.shape[0]
+
+    if tick_labels_b is None:
+        x_min = parsed_values_b.min()
+        x_max = parsed_values_b.max()
+    else:
+        x_min = 0
+        x_max = legend_cmap.shape[1]
+
     height_range = y_max - y_min
     width_range = x_max - x_min
     aspect = width_range / height_range
+
     ax.imshow(
         img,
         origin="lower",
-        extent=(x_min, x_max, y_min, y_max) if tick_labels_a is None else None,
-        aspect=aspect if tick_labels_a is None else None,
+        extent=(x_min, x_max, y_min, y_max),
+        aspect=aspect,
         interpolation="nearest",
     )
     ax.tick_params(axis="both", which="both", length=0)
@@ -105,12 +152,12 @@ def plot_bivariate_legend(
     ax.tick_params(labelsize=tick_fontsize_pt)
 
     if tick_labels_a:
-        yticks = np.linspace(-0.5, legend_cmap.shape[0] - 0.5, len(tick_labels_a))
+        yticks = np.linspace(0, legend_cmap.shape[0], len(tick_labels_a))
         ax.set_yticks(yticks)
         ax.set_yticklabels(tick_labels_a)
 
     if tick_labels_b:
-        xticks = np.linspace(-0.5, legend_cmap.shape[1] - 0.5, len(tick_labels_b))
+        xticks = np.linspace(0, legend_cmap.shape[1], len(tick_labels_b))
         ax.set_xticks(xticks)
         ax.set_xticklabels(tick_labels_b)
         auto_rotate_xticks(ax)
