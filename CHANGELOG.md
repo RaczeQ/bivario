@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for mixing different `scheme` and `k` values for mapclassify as well as mixing continuous and distinct values [#12](https://github.com/RaczeQ/bivario/issues/12)
+
+### Changed
+
+- Removed `GeoPandas` and `folium` from required dependencies.
+- Lowered required dependencies versions:
+    - colour-science>=0.4.0
+    - mapclassify>=2
+    - matplotlib>=3.3
+    - narwhals>=1.9.4
+    - numpy>=1.19
+
 ## [0.2.0] - 2025-10-22
 
 ### Added

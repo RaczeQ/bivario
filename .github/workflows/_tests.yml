@@ -18,6 +18,8 @@ jobs:
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
+      UV_PYTHON: ${{ matrix.python-version }}
+      UV_NO_MANAGED_PYTHON: True
       COLUMNS: 120
     steps:
       - uses: actions/checkout@v3

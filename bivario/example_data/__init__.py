@@ -1,13 +1,15 @@
 """Example datasets for bivario package."""
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import geopandas as gpd
+if TYPE_CHECKING:
+    import geopandas as gpd
 
 __all__ = ["nyc_bike_trips"]
 
 
-def nyc_bike_trips() -> gpd.GeoDataFrame:
+def nyc_bike_trips() -> "gpd.GeoDataFrame":
     """
     Load example NYC bike trips data as a GeoDataFrame.
 
@@ -36,6 +38,16 @@ def nyc_bike_trips() -> gpd.GeoDataFrame:
         ... )
         <folium.folium.Map object at 0x...>
     """
+    try:
+        import geopandas as gpd
+    except (ImportError, ModuleNotFoundError) as ex:
+        raise ImportError(
+            "The 'geopandas' package "
+            "is required for loading example data. You can install it using "
+            "'conda install -c conda-forge geopandas' "
+            "or 'pip install geopandas'."
+        ) from ex
+
     data_path = Path(__file__).parent / "nyc_bike_trips.csv.gz"
     df = gpd.pd.read_csv(data_path)
     gdf = gpd.GeoDataFrame(df, geometry=gpd.GeoSeries.from_wkt(df["geometry"], crs=4326))

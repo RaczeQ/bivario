@@ -1,8 +1,13 @@
 """Test bivariate colormap functionality."""
 
+from typing import Any
+
+import numpy as np
+import pytest
+
 
 def test_default_bivariate_colourmap() -> None:
-    """Test that NamedBivariateColourmap can be run without error."""
+    """Test that default colourmap can be run without error."""
     from bivario import get_bivariate_cmap
 
     cmap = get_bivariate_cmap()
@@ -44,3 +49,13 @@ def test_bivariate_from_corners_colourmap() -> None:
         high=(0.0, 0.0, 0.0),
     )
     cmap(values_a=[0, 1], values_b=[0, 1])
+
+
+@pytest.mark.parametrize("values_input", [["A", "B", "C", "D"], [np.empty([2, 2]).astype(complex)]])  # type: ignore
+def test_disallow_nonnumeric_inputs(values_input: list[Any]) -> None:
+    """Test that non-numeric inputs are disallowed."""
+    from bivario import get_bivariate_cmap
+
+    cmap = get_bivariate_cmap()
+    with pytest.raises(TypeError):
+        cmap(values_a=values_input, values_b=[0, 1])

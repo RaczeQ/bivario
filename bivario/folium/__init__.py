@@ -1,214 +1,40 @@
 """Bivariate folium maps module."""
 
-import base64
-import io
 import warnings
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-import folium
-import geopandas as gpd
 import numpy as np
-from branca.element import MacroElement
-from folium.template import Template
 from mapclassify import classify
 from mapclassify.classifiers import _format_intervals
-from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
 from matplotlib.colors import rgb2hex
-from matplotlib.figure import Figure
-from xyzservices import TileProvider
 
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
-from bivario.legend import DPI, auto_rotate_xticks, plot_bivariate_legend
+from bivario.legend import plot_bivariate_legend
 
 if TYPE_CHECKING:
+    import folium
+    import geopandas as gpd
+    import xyzservices
     from mapclassify.classifiers import MapClassifier
+    from matplotlib.figure import Figure
 
     from bivario.typing import ValueInput
 
 DARK_MODE_TILES_KEYWORDS = ("dark",)
 
 
-class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
-    """Adds a floating bivariate legend in HTML canvas on top of the map."""
-
-    _template = Template(
-        """
-            {% macro header(this,kwargs) %}
-                <style>
-                    #{{this.get_name()}} {
-                        position: absolute;
-                        pointer-events: none;
-                        {%- for property, value in this.css.items() %}
-                          {{ property }}: {{ value }};
-                        {%- endfor %}
-                        }
-                </style>
-            {% endmacro %}
-
-            {% macro html(this,kwargs) %}
-            <img id="{{this.get_name()}}" alt="float_image"
-                 src="{{ this.image }}"
-                 style="z-index: 999999">
-            </img>
-            {% endmacro %}
-            """
-    )
-
-    def __init__(
-        self,
-        fig: Figure,
-        ax: Axes,
-        legend_size_px: int,
-        legend_loc: Literal["bl", "br", "tl", "tr"] | None = None,
-        legend_offset_px: float | tuple[float, float] | None = None,
-        legend_background: bool = True,
-        legend_border: bool = True,
-        padding_top_right_corner: bool = False,
-        **kwargs: Any,
-    ) -> None:
-        """
-        Create a floating bivariate legend for folium maps.
-
-        Args:
-            fig (Figure): Matplotlib figure containing the legend.
-            ax (Axes): Matplotlib axes containing the legend.
-            legend_size_px (int): Size of the legend in pixels.
-            legend_loc (Literal["bl", "br", "tl", "tr"] | None, optional): Location of the legend
-                on the map. Can be "bl" (bottom-left), "br" (bottom-right), "tl" (top-left),
-                or "tr" (top-right). Defaults to "bl".
-            legend_offset_px (float | tuple[float, float] | None, optional): Offset of the legend
-                from the specified location in pixels. If None, uses default offsets based on
-                location. Defaults to None.
-            legend_background (bool, optional): Whether to add a background to the legend.
-                Defaults to True.
-            legend_border (bool, optional): Whether to add a border to the legend.
-                Defaults to True.
-            padding_top_right_corner (bool, optional): Whether to add padding for top-right
-                legend corner for readabilty. Defaults to False.
-            **kwargs (Any): Additional CSS properties for the legend.
-        """
-        super().__init__()
-        self._name = "FloatBivariateMatplotlibLegend"
-
-        self.css = kwargs
-
-        if legend_background:
-            self.css["background"] = "rgba(255, 255, 255, 0.8)"
-            self.css["padding"] = "2px" if padding_top_right_corner else "0 0 2px 2px"
-
-            if legend_border:
-                self.css["border"] = "2px solid rgba(0, 0, 0, 0.2)"
-                self.css["border-radius"] = "4px"
-                self.css["background-clip"] = "padding-box"
-
-        self.resize_fig(fig=fig, ax=ax, legend_size_px=legend_size_px)
-
-        self.image = "data:image/svg+xml;base64," + self.figure_to_base64_string(fig)
-
-        plt.close()
-
-        self.css.pop("bottom", None)
-        self.css.pop("top", None)
-        self.css.pop("left", None)
-        self.css.pop("right", None)
-        self.css.pop("transform", None)
-
-        legend_loc = legend_loc or "bl"
-
-        match legend_loc:
-            case "bl":
-                legend_position_x, legend_position_y = self.parse_offset(
-                    legend_offset_px or (5, 40)
-                )
-                self.css["bottom"] = f"{legend_position_y}px"
-                self.css["left"] = f"{legend_position_x}px"
-            case "br":
-                legend_position_x, legend_position_y = self.parse_offset(
-                    legend_offset_px or (5, 19)
-                )
-                self.css["bottom"] = f"{legend_position_y}px"
-                self.css["right"] = f"{legend_position_x}px"
-            case "tl":
-                legend_position_x, legend_position_y = self.parse_offset(
-                    legend_offset_px or (10, 79)
-                )
-                self.css["top"] = f"{legend_position_y}px"
-                self.css["left"] = f"{legend_position_x}px"
-            case "tr":
-                legend_position_x, legend_position_y = self.parse_offset(
-                    legend_offset_px or (10, 10)
-                )
-                self.css["top"] = f"{legend_position_y}px"
-                self.css["right"] = f"{legend_position_x}px"
-
-    def resize_fig(
-        self, fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.1
-    ) -> None:
-        """Resize figure so that the Axes data area matches the target legend size in pixels."""
-        fig.canvas.draw()
-        renderer = fig.canvas.get_renderer()
-
-        # Get bounding boxes (in display / pixel coordinates)
-        bbox_ax = ax.get_window_extent(renderer)
-
-        # Compute inner data area size (in pixels)
-        data_width_px = bbox_ax.width
-        data_height_px = bbox_ax.height
-
-        while (
-            abs(legend_size_px - data_width_px) > tolerance_px
-            or abs(legend_size_px - data_height_px) > tolerance_px
-        ):
-            # Calculate scale factor so data area = target_data_px
-            scale = legend_size_px / min(data_width_px, data_height_px)
-
-            # Compute new figure size (inches)
-            w_in, h_in = fig.get_size_inches()
-            new_w_in = w_in * scale
-            new_h_in = h_in * scale
-
-            fig.set_size_inches(new_w_in, new_h_in)
-
-            auto_rotate_xticks(ax)
-
-            # Redraw with new size
-            fig.canvas.draw()
-
-            renderer = fig.canvas.get_renderer()
-
-            # Get bounding boxes (in display / pixel coordinates)
-            bbox_ax = ax.get_window_extent(renderer)
-
-            data_width_px = bbox_ax.width
-            data_height_px = bbox_ax.height
-
-    def figure_to_base64_string(self, fig: Figure) -> str:
-        """Convert Matplotlib figure to base64-encoded SVG string."""
-        buffered = io.BytesIO()
-        fig.savefig(
-            buffered, format="svg", transparent=True, dpi=DPI, bbox_inches="tight", pad_inches=0
-        )
-        return base64.b64encode(buffered.getvalue()).decode("ascii")
-
-    def parse_offset(self, legend_offset_px: float | tuple[float, float]) -> tuple[float, float]:
-        """Parse legend offset into x and y components."""
-        if isinstance(legend_offset_px, (int, float)):
-            legend_position_x = legend_position_y = legend_offset_px
-        else:
-            legend_position_x, legend_position_y = legend_offset_px
-        return (legend_position_x, legend_position_y)
+SCHEME_TYPE = str | None | bool
 
 
 def explore_bivariate_data(
-    gdf: gpd.GeoDataFrame,
+    gdf: "gpd.GeoDataFrame",
     column_a: "str | ValueInput",
     column_b: "str | ValueInput",
     column_a_label: str | None = None,
     column_b_label: str | None = None,
-    scheme: str | None | bool = True,
-    k: int = 5,
-    tiles: str | folium.TileLayer | TileProvider | None = None,
+    scheme: SCHEME_TYPE | tuple[SCHEME_TYPE, SCHEME_TYPE] = True,
+    k: int | tuple[int, int] = 5,
+    tiles: "str | folium.TileLayer | xyzservices.TileProvider | None" = None,
     cmap: BivariateColourmap | str | None = None,
     dark_mode: bool | None = None,
     alpha: bool = True,
@@ -221,7 +47,7 @@ def explore_bivariate_data(
     legend_border: bool = True,
     legend_kwargs: dict[str, Any] | None = None,
     **kwargs: Any,
-) -> folium.Map:
+) -> "folium.Map":
     """
     Explore geospatial data with a bivariate colormap on a folium map.
 
@@ -233,13 +59,15 @@ def explore_bivariate_data(
             Defaults to None.
         column_b_label (str | None, optional): Label for column b. If None, will use column name.
             Defaults to None.
-        scheme (str | None | bool, optional): Mapclassify binning scheme for the data. If True, uses
-            "NaturalBreaks". If False, no binning is applied. If str, uses the specified scheme.
-            If None, no binning is applied. Defaults to True.
-        k (int, optional): Number of classes for binning. Defaults to 5.
-        tiles (str | folium.TileLayer | TileProvider | None, optional): Tile layer for the map.
-            If None, will set based on dark mode - "CartoDB DarkMatter" for the dark mode, and
-            "CartoDB Positron" for the light mode. Defaults to None.
+        scheme (str | None | bool | tuple, optional): Mapclassify binning scheme for the data.
+            If True, uses "NaturalBreaks". If False, no binning is applied.
+            If str, uses the specified scheme. If None, no binning is applied. Can also define
+            two different values for columns a and b. Defaults to True.
+        k (int | tuple[int, int], optional): Number of classes for binning. Can also define two
+            different values for columns a and b. Defaults to 5.
+        tiles (str | folium.TileLayer | xyzservices.TileProvider | None, optional): Tile layer
+            for the map. If None, will set based on dark mode - "CartoDB DarkMatter" for the
+            dark mode, and "CartoDB Positron" for the light mode. Defaults to None.
         cmap (BivariateColourmap | str | None, optional): Bivariate colourmap to use.
             If None, will load a default one. Defaults to None.
         dark_mode (bool | None, optional): Whether to use dark mode for the map tiles. If None,
@@ -337,7 +165,7 @@ def explore_bivariate_data(
         tiles_name = ""
         if isinstance(tiles, str):
             tiles_name = tiles.lower()
-        elif isinstance(tiles, TileProvider):
+        elif hasattr(tiles, "name"):
             tiles_name = str(tiles.name).lower()
 
         for keyword in DARK_MODE_TILES_KEYWORDS:
@@ -370,17 +198,29 @@ def explore_bivariate_data(
     tick_labels_a = None
     tick_labels_b = None
 
-    if isinstance(scheme, bool):
-        scheme = "NaturalBreaks" if scheme else None
+    if isinstance(scheme, (tuple, list)):
+        scheme_a, scheme_b = scheme
+    else:
+        scheme_a = scheme_b = scheme
 
-    if scheme is not None:
-        binning_a = cast("MapClassifier", classify(_values_a, scheme=scheme, k=k))
-        binning_b = cast("MapClassifier", classify(_values_b, scheme=scheme, k=k))
+    if isinstance(k, (tuple, list)):
+        k_a, k_b = k
+    else:
+        k_a = k_b = k
 
+    if isinstance(scheme_a, bool):
+        scheme_a = "NaturalBreaks" if scheme_a else None
+    if isinstance(scheme_b, bool):
+        scheme_b = "NaturalBreaks" if scheme_b else None
+
+    if scheme_a is not None:
+        binning_a = cast("MapClassifier", classify(_values_a, scheme=scheme_a, k=k_a))
         _values_a = binning_a.yb
-        _values_b = binning_b.yb
-
         tick_labels_a = [_l.replace(".0", "") for _l in _format_intervals(binning_a, "{:,.1f}")[0]]
+
+    if scheme_b is not None:
+        binning_b = cast("MapClassifier", classify(_values_b, scheme=scheme_b, k=k_b))
+        _values_b = binning_b.yb
         tick_labels_b = [_l.replace(".0", "") for _l in _format_intervals(binning_b, "{:,.1f}")[0]]
 
     cmap = get_bivariate_cmap(cmap)
@@ -407,7 +247,25 @@ def explore_bivariate_data(
     )
 
     if legend:
+        try:
+            from bivario.folium._legend import FloatBivariateMatplotlibLegend
+        except (ImportError, ModuleNotFoundError) as ex:
+            raise ImportError(
+                "The 'folium>=0.12' package "
+                "is required for showing legend. You can install it using "
+                "'conda install -c conda-forge \"folium>=0.12\"' "
+                "or 'pip install \"folium>=0.12\"'."
+            ) from ex
+
         legend_kwargs = legend_kwargs or {}
+
+        grid_size: int | tuple[int, int]
+        if scheme_a is scheme_b is None:
+            grid_size = legend_size_px
+        else:
+            grid_size_y = legend_size_px if scheme_a is None else k_a
+            grid_size_x = legend_size_px if scheme_b is None else k_b
+            grid_size = (grid_size_x, grid_size_y)
 
         ax = plot_bivariate_legend(
             values_a=original_values_a,
@@ -418,7 +276,7 @@ def explore_bivariate_data(
             tick_labels_a=tick_labels_a,
             tick_labels_b=tick_labels_b,
             font_colour="#333" if legend_background else None,
-            grid_size=legend_size_px if scheme is None else k,
+            grid_size=grid_size,
             dark_mode=dark_mode,
             **legend_kwargs,
         )
