@@ -77,9 +77,9 @@ def plot_bivariate_legend(
     label_b = label_b or _try_parse_label(values_b) or "Value B"
 
     if isinstance(grid_size, (tuple, list)):
-        grid_size_y, grid_size_x = grid_size
+        grid_size_x, grid_size_y = grid_size
     else:
-        grid_size_y = grid_size_x = grid_size or 100
+        grid_size_x = grid_size_y = grid_size or 100
 
     xx, yy = np.mgrid[0:grid_size_x, 0:grid_size_y]
 
