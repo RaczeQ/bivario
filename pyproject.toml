@@ -6,11 +6,11 @@ readme = "README.md"
 authors = [{ name = "Kamil Raczycki", email = "kraczycki@kraina.ai" }]
 requires-python = ">=3.10"
 dependencies = [
-    "colour-science>=0.4.6",
-    "mapclassify>=2.8.1",
-    "matplotlib>=3.9.4",
-    "narwhals>=2.8.0",
-    "numpy>=2.0.2",
+    "colour-science>=0.4.0",
+    "mapclassify>=2",
+    "matplotlib>=3",
+    "narwhals>=1.9.4",
+    "numpy>=1.19",
 ]
 license = { text = "MIT" }
 classifiers = [
