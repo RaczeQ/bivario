@@ -28,7 +28,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: uv sync
+        run: uv sync -p ${{ matrix.python-version }}
       - name: Cache tox runner
         uses: actions/cache@v3
         with:
