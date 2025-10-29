@@ -12,11 +12,11 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
         include:
           - os: macos-latest
-            python-version: "3.12"
+            python-version: "3.13"
           - os: macos-13
-            python-version: "3.12"
+            python-version: "3.13"
           - os: windows-latest
-            python-version: "3.12"
+            python-version: "3.13"
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
@@ -48,6 +48,8 @@ jobs:
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
+      UV_PYTHON: ${{ matrix.python-version }}
+      UV_NO_MANAGED_PYTHON: True
       COLUMNS: 120
     steps:
       - uses: actions/checkout@v3
