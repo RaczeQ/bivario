@@ -18,6 +18,8 @@ jobs:
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
+      UV_PYTHON: ${{ matrix.python-version }}
+      UV_NO_MANAGED_PYTHON: True
       COLUMNS: 120
     steps:
       - uses: actions/checkout@v3
@@ -28,9 +30,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: |
-          uv venv -p ${{ matrix.python-version }} --python-preference only-system
-          uv sync
+        run: uv sync
       - name: Cache tox runner
         uses: actions/cache@v3
         with:

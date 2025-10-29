@@ -20,6 +20,8 @@ jobs:
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
+      UV_PYTHON: ${{ matrix.python-version }}
+      UV_NO_MANAGED_PYTHON: True
       COLUMNS: 120
     steps:
       - uses: actions/checkout@v3
@@ -30,9 +32,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: |
-          uv venv -p ${{ matrix.python-version }} --python-preference only-system
-          uv sync --resolution highest
+        run: uv sync --resolution highest
       - name: Run tests with pytest
         run: |
           uv run pytest -v -s --durations=20 tests
@@ -58,9 +58,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: |
-          uv venv -p ${{ matrix.python-version }} --python-preference only-system
-          uv sync --resolution lowest-direct
+        run: uv sync --resolution lowest-direct
       - name: Run tests with pytest
         run: |
           uv run pytest -v -s --durations=20 tests
