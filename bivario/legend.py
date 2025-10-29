@@ -81,7 +81,7 @@ def plot_bivariate_legend(
     else:
         grid_size_x = grid_size_y = grid_size or 100
 
-    xx, yy = np.mgrid[0:grid_size_x, 0:grid_size_y]
+    xx, yy = np.mgrid[0:grid_size_y, 0:grid_size_x]
 
     cmap = get_bivariate_cmap(cmap)
 
