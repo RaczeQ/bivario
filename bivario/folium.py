@@ -6,7 +6,6 @@ import warnings
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import folium
-import geopandas as gpd
 import numpy as np
 from branca.element import MacroElement
 from folium.template import Template
@@ -22,6 +21,7 @@ from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cma
 from bivario.legend import DPI, auto_rotate_xticks, plot_bivariate_legend
 
 if TYPE_CHECKING:
+    import geopandas as gpd
     from mapclassify.classifiers import MapClassifier
 
     from bivario.typing import ValueInput
@@ -204,7 +204,7 @@ SCHEME_TYPE = str | None | bool
 
 
 def explore_bivariate_data(
-    gdf: gpd.GeoDataFrame,
+    gdf: "gpd.GeoDataFrame",
     column_a: "str | ValueInput",
     column_b: "str | ValueInput",
     column_a_label: str | None = None,

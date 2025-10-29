@@ -10,7 +10,6 @@ requires-python = ">=3.10"
 dependencies = [
     "colour-science>=0.4.6",
     "folium>=0.20.0",
-    "geopandas>=1.0.1",
     "mapclassify>=2.8.1",
     "matplotlib>=3.9.4",
     "narwhals>=2.8.0",
@@ -49,6 +48,7 @@ lint = [
     "ruff>=0.14.0",
 ]
 notebook = [
+    "geopandas>=1.0.1",
     "duckdb>=1.4.1",
     "ipykernel>=6.30.1",
     "pyarrow>=21.0.0",

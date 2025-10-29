@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for mixing different `scheme` and `k` values for mapclassify as well as mixing continuous and distinct values [#12](https://github.com/RaczeQ/bivario/issues/12)
 
+### Changed
+
+- Removed `GeoPandas` from required dependencies.
+
 ## [0.2.0] - 2025-10-22
 
 ### Added
