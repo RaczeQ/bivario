@@ -25,8 +25,7 @@ def test_different_font_size_plotting() -> None:
 def test_different_grid_size_plotting(grid_size: int | tuple[int, int] | None) -> None:
     """Test that grid_size can be set."""
     ax = plot_bivariate_legend(values_a=[0, 1], values_b=[0, 1], grid_size=grid_size)
-    ai = ax.get_images()[0]
-    img_data = ai.get_array()
+    img_data = ax.get_images()[0].get_array()
     assert img_data is not None, "No image data plotted on the array."
 
     expected_grid_size = (
