@@ -38,7 +38,15 @@ def nyc_bike_trips() -> "gpd.GeoDataFrame":
         ... )
         <folium.folium.Map object at 0x...>
     """
-    import geopandas as gpd
+    try:
+        import geopandas as gpd
+    except (ImportError, ModuleNotFoundError) as ex:
+        raise ImportError(
+            "The 'geopandas' package "
+            "is required for loading example data. You can install it using "
+            "'conda install -c conda-forge geopandas' "
+            "or 'pip install geopandas'."
+        ) from ex
 
     data_path = Path(__file__).parent / "nyc_bike_trips.csv.gz"
     df = gpd.pd.read_csv(data_path)

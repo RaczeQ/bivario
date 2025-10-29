@@ -247,7 +247,15 @@ def explore_bivariate_data(
     )
 
     if legend:
-        from bivario.folium._legend import FloatBivariateMatplotlibLegend
+        try:
+            from bivario.folium._legend import FloatBivariateMatplotlibLegend
+        except (ImportError, ModuleNotFoundError) as ex:
+            raise ImportError(
+                "The 'folium>=0.12' package "
+                "is required for showing legend. You can install it using "
+                "'conda install -c conda-forge \"folium>=0.12\"' "
+                "or 'pip install \"folium>=0.12\"'."
+            ) from ex
 
         legend_kwargs = legend_kwargs or {}
 
