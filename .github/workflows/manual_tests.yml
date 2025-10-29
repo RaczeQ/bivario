@@ -30,7 +30,9 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: uv sync --resolution highest -p ${{ matrix.python-version }}
+        run: |
+          uv venv -p ${{ matrix.python-version }} --python-preference only-system
+          uv sync --resolution highest
       - name: Run tests with pytest
         run: |
           uv run pytest -v -s --durations=20 tests
@@ -56,7 +58,9 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: uv sync --resolution lowest-direct -p ${{ matrix.python-version }}
+        run: |
+          uv venv -p ${{ matrix.python-version }} --python-preference only-system
+          uv sync --resolution lowest-direct
       - name: Run tests with pytest
         run: |
           uv run pytest -v -s --durations=20 tests
