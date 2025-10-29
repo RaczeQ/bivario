@@ -73,7 +73,7 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
             **kwargs (Any): Additional CSS properties for the legend.
         """
         super().__init__()
-        self._name = "FloatBivariateMatplotlibLegend"
+        self._name = FloatBivariateMatplotlibLegend.__name__
 
         self.css = kwargs
 

@@ -8,6 +8,7 @@ import pytest
 
 from bivario import explore_bivariate_data
 from bivario.folium import SCHEME_TYPE
+from bivario.folium._legend import FloatBivariateMatplotlibLegend
 
 
 @pytest.fixture  # type: ignore
@@ -69,21 +70,45 @@ def test_different_schemes(
     )
 
 
-@pytest.mark.parametrize("legend_pos", ["bl", "br", "tl", "tr", None])  # type: ignore
+@pytest.mark.parametrize("legend_loc", ["bl", "br", "tl", "tr", None])  # type: ignore
 @pytest.mark.parametrize("legend_background", [True, False])  # type: ignore
 @pytest.mark.parametrize("legend_border", [True, False])  # type: ignore
 def test_different_legend_positions(
     dummy_data: gpd.GeoDataFrame,
-    legend_pos: Literal["bl", "br", "tl", "tr"] | None,
+    legend_loc: Literal["bl", "br", "tl", "tr"] | None,
     legend_background: bool,
     legend_border: bool,
 ) -> None:
     """Test that dark_mode can be set."""
-    explore_bivariate_data(
+    m = explore_bivariate_data(
         dummy_data,
         column_a="a",
         column_b="b",
-        legend_pos=legend_pos,
+        legend_loc=legend_loc,
         legend_background=legend_background,
         legend_border=legend_border,
     )
+
+    legend_object = [
+        v for v in m.__dict__["_children"].values() if isinstance(v, FloatBivariateMatplotlibLegend)
+    ][0]
+
+    expected_legend_loc = legend_loc or "bl"
+
+    if "b" in expected_legend_loc:
+        assert "bottom" in legend_object.css
+    if "t" in expected_legend_loc:
+        assert "top" in legend_object.css
+    if "l" in expected_legend_loc:
+        assert "left" in legend_object.css
+    if "r" in expected_legend_loc:
+        assert "right" in legend_object.css
+
+    if legend_background:
+        assert "background" in legend_object.css
+        assert "padding" in legend_object.css
+
+        if legend_border:
+            assert "border" in legend_object.css
+            assert "border-radius" in legend_object.css
+            assert "background-clip" in legend_object.css
