@@ -3,13 +3,10 @@ name = "bivario"
 version = "0.2.0"
 description = "Python library for plotting bivariate choropleth maps"
 readme = "README.md"
-authors = [
-    { name = "Kamil Raczycki", email = "kraczycki@kraina.ai" }
-]
+authors = [{ name = "Kamil Raczycki", email = "kraczycki@kraina.ai" }]
 requires-python = ">=3.10"
 dependencies = [
     "colour-science>=0.4.6",
-    "folium>=0.20.0",
     "mapclassify>=2.8.1",
     "matplotlib>=3.9.4",
     "narwhals>=2.8.0",
@@ -38,26 +35,20 @@ Changelog = "https://github.com/RaczeQ/bivario/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
-  {include-group = "lint"},
-  {include-group = "test"},
-  {include-group = "notebook"},
-  "bumpver>=2025.1131",
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "notebook" },
+    "bumpver>=2025.1131",
 ]
-lint = [
-    "pre-commit>=4.3.0",
-    "ruff>=0.14.0",
-]
+lint = ["pre-commit>=4.3.0", "ruff>=0.14.0"]
 notebook = [
     "geopandas>=1.0.1",
+    "folium>=0.11.0",
     "duckdb>=1.4.1",
     "ipykernel>=6.30.1",
     "pyarrow>=21.0.0",
 ]
-test = [
-    "pytest>=8.4.2",
-    "pytest-doctestplus>=1.2.1",
-    "tox-uv>=1.29.0",
-]
+test = ["pytest>=8.4.2", "pytest-doctestplus>=1.2.1", "tox-uv>=1.29.0"]
 
 [build-system]
 requires = ["uv_build>=0.9.1,<0.10.0"]
