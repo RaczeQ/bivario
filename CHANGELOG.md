@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lowered required dependencies versions:
     - colour-science>=0.4.0
     - mapclassify>=2
-    - matplotlib>=3
+    - matplotlib>=3.1
     - narwhals>=1.9.4
     - numpy>=1.19
 

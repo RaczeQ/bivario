@@ -74,7 +74,7 @@ test = [
 requires-dist = [
     { name = "colour-science", specifier = ">=0.4.0" },
     { name = "mapclassify", specifier = ">=2" },
-    { name = "matplotlib", specifier = ">=3" },
+    { name = "matplotlib", specifier = ">=3.1" },
     { name = "narwhals", specifier = ">=1.9.4" },
     { name = "numpy", specifier = ">=1.19" },
 ]
