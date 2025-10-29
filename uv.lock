@@ -32,7 +32,6 @@ source = { editable = "." }
 dependencies = [
     { name = "colour-science" },
     { name = "folium" },
-    { name = "geopandas" },
     { name = "mapclassify", version = "2.8.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "mapclassify", version = "2.10.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "matplotlib" },
@@ -45,6 +44,7 @@ dependencies = [
 dev = [
     { name = "bumpver" },
     { name = "duckdb" },
+    { name = "geopandas" },
     { name = "ipykernel" },
     { name = "pre-commit" },
     { name = "pyarrow" },
@@ -59,6 +59,7 @@ lint = [
 ]
 notebook = [
     { name = "duckdb" },
+    { name = "geopandas" },
     { name = "ipykernel" },
     { name = "pyarrow" },
 ]
@@ -72,7 +73,6 @@ test = [
 requires-dist = [
     { name = "colour-science", specifier = ">=0.4.6" },
     { name = "folium", specifier = ">=0.20.0" },
-    { name = "geopandas", specifier = ">=1.0.1" },
     { name = "mapclassify", specifier = ">=2.8.1" },
     { name = "matplotlib", specifier = ">=3.9.4" },
     { name = "narwhals", specifier = ">=2.8.0" },
@@ -83,6 +83,7 @@ requires-dist = [
 dev = [
     { name = "bumpver", specifier = ">=2025.1131" },
     { name = "duckdb", specifier = ">=1.4.1" },
+    { name = "geopandas", specifier = ">=1.0.1" },
     { name = "ipykernel", specifier = ">=6.30.1" },
     { name = "pre-commit", specifier = ">=4.3.0" },
     { name = "pyarrow", specifier = ">=21.0.0" },
@@ -97,6 +98,7 @@ lint = [
 ]
 notebook = [
     { name = "duckdb", specifier = ">=1.4.1" },
+    { name = "geopandas", specifier = ">=1.0.1" },
     { name = "ipykernel", specifier = ">=6.30.1" },
     { name = "pyarrow", specifier = ">=21.0.0" },
 ]
