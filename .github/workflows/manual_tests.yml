@@ -61,7 +61,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
         run: |
-          sudo apt-get install pkg-config
+          sudo apt install pkg-config
           uv sync --resolution lowest-direct
       - name: Run tests with pytest
         run: |
