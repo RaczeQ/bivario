@@ -1,0 +1,230 @@
+"""Bivariate lonboard maps module."""
+
+from dataclasses import dataclass
+from functools import partial
+from typing import TYPE_CHECKING, Any, cast
+
+import narwhals as nw
+import numpy as np
+from mapclassify import classify
+from mapclassify.classifiers import _format_intervals
+
+from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
+from bivario.folium import DARK_MODE_TILES_KEYWORDS, SCHEME_TYPE
+from bivario.legend import plot_bivariate_legend
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from lonboard._map import Map
+    from lonboard.types.layer import (
+        PathLayerKwargs,
+        PolygonLayerKwargs,
+        ScatterplotLayerKwargs,
+    )
+    from lonboard.types.map import MapKwargs
+    from mapclassify.classifiers import MapClassifier
+    from matplotlib.axes import Axes
+    from narwhals.typing import IntoFrame
+
+    from bivario.typing import ValueInput
+
+
+@dataclass
+class LonboardMapWithLegend:
+    """Lonboard Map object with bivariate legend as Matplotlib Axes."""
+
+    m: "Map"
+    legend: "Callable[..., Axes]"
+
+    def _repr_mimebundle_(self, **kwargs: dict) -> tuple[dict, dict] | None:  # type: ignore[type-arg]
+        # Delegate rendering to the map object
+        if hasattr(self.m, "_repr_mimebundle_"):
+            return self.m._repr_mimebundle_(**kwargs)  # type: ignore[no-any-return]
+
+        return None
+
+
+def viz_bivariate_data(
+    data: "Any | list[Any] | tuple[Any, ...]",
+    column_a: "str | ValueInput",
+    column_b: "str | ValueInput",
+    column_a_label: str | None = None,
+    column_b_label: str | None = None,
+    scheme: SCHEME_TYPE | tuple[SCHEME_TYPE, SCHEME_TYPE] = True,
+    k: int | tuple[int, int] = 5,
+    tiles: str | None = None,
+    cmap: BivariateColourmap | str | None = None,
+    dark_mode: bool | None = None,
+    alpha: bool = True,
+    alpha_norm_quantile: float = 0.9,
+    legend: bool = False,
+    legend_size_px: int = 200,
+    legend_kwargs: dict[str, Any] | None = None,
+    scatterplot_kwargs: "ScatterplotLayerKwargs | None" = None,
+    path_kwargs: "PathLayerKwargs | None" = None,
+    polygon_kwargs: "PolygonLayerKwargs | None" = None,
+    map_kwargs: "MapKwargs | None" = None,
+) -> "Map | LonboardMapWithLegend":
+    narwhals_df = None
+
+    if isinstance(column_a, str) or isinstance(column_b, str):
+        narwhals_df = nw.from_native(cast("IntoFrame", data))
+
+        original_values_a = narwhals_df[column_a] if isinstance(column_a, str) else column_a
+        original_values_b = narwhals_df[column_b] if isinstance(column_b, str) else column_b
+    else:
+        original_values_a = column_a
+        original_values_b = column_b
+
+    _values_a, _values_b = _validate_values(original_values_a, original_values_b)
+
+    # If tiles are not defined - set based on dark mode
+    if tiles is None:
+        if dark_mode is None:
+            dark_mode = False
+
+        from lonboard.basemap import CartoBasemap
+
+        tiles = CartoBasemap.DarkMatter if dark_mode else CartoBasemap.Positron
+    # If tiles are defined, set dark mode based on tiles if not defined
+    elif dark_mode is None:
+        dark_mode = False
+        tiles_name = tiles.lower()
+
+        for keyword in DARK_MODE_TILES_KEYWORDS:
+            if keyword in tiles_name:
+                dark_mode = True
+                break
+
+    set_alpha = alpha  # now its bool, but can be a list of values, then check if not empty
+
+    alpha_values = None
+
+    if set_alpha:
+        if alpha_norm_quantile < 0 or alpha_norm_quantile > 1:
+            raise ValueError("alpha_norm_quantile must be between 0 and 1 (inclusive).")
+
+        alpha_values = np.sqrt(
+            np.minimum(
+                1,
+                np.maximum(
+                    _values_a / np.quantile(_values_a, alpha_norm_quantile),
+                    _values_b / np.quantile(_values_b, alpha_norm_quantile),
+                ),
+            )
+        ).reshape(-1, 1)
+
+    tick_labels_a = None
+    tick_labels_b = None
+
+    if isinstance(scheme, (tuple, list)):
+        scheme_a, scheme_b = scheme
+    else:
+        scheme_a = scheme_b = scheme
+
+    if isinstance(k, (tuple, list)):
+        k_a, k_b = k
+    else:
+        k_a = k_b = k
+
+    if isinstance(scheme_a, bool):
+        scheme_a = "NaturalBreaks" if scheme_a else None
+    if isinstance(scheme_b, bool):
+        scheme_b = "NaturalBreaks" if scheme_b else None
+
+    if scheme_a is not None:
+        binning_a = cast("MapClassifier", classify(_values_a, scheme=scheme_a, k=k_a))
+        _values_a = binning_a.yb
+        tick_labels_a = [_l.replace(".0", "") for _l in _format_intervals(binning_a, "{:,.1f}")[0]]
+
+    if scheme_b is not None:
+        binning_b = cast("MapClassifier", classify(_values_b, scheme=scheme_b, k=k_b))
+        _values_b = binning_b.yb
+        tick_labels_b = [_l.replace(".0", "") for _l in _format_intervals(binning_b, "{:,.1f}")[0]]
+
+    cmap = get_bivariate_cmap(cmap)
+
+    values_cmap = cmap(values_a=_values_a, values_b=_values_b, normalize=True, dark_mode=dark_mode)
+
+    if alpha_values is not None:
+        values_cmap = np.concatenate([values_cmap, alpha_values], axis=1)
+
+    values_cmap = (values_cmap * 255).astype(np.uint8)
+
+    from lonboard import viz
+
+    map_kwargs = map_kwargs or {}
+    polygon_kwargs = polygon_kwargs or {}
+    scatterplot_kwargs = scatterplot_kwargs or {}
+    path_kwargs = path_kwargs or {}
+
+    if "basemap_style" in map_kwargs:
+        map_kwargs.pop("legend")
+
+    # Polygon layer
+    if "filled" in polygon_kwargs:
+        polygon_kwargs.pop("filled")
+    if "get_fill_color" in polygon_kwargs:
+        polygon_kwargs.pop("get_fill_color")
+
+    if "stroked" not in polygon_kwargs:
+        polygon_kwargs["stroked"] = False
+    if "opacity" not in polygon_kwargs:
+        polygon_kwargs["opacity"] = 1
+
+    # Scatterplot layer
+    if "filled" in scatterplot_kwargs:
+        scatterplot_kwargs.pop("filled")
+    if "get_fill_color" in scatterplot_kwargs:
+        scatterplot_kwargs.pop("get_fill_color")
+
+    if "stroked" not in scatterplot_kwargs:
+        scatterplot_kwargs["stroked"] = False
+    if "opacity" not in scatterplot_kwargs:
+        scatterplot_kwargs["opacity"] = 1
+
+    # Path layer
+    if "get_color" in path_kwargs:
+        path_kwargs.pop("get_color")
+
+    if "opacity" not in path_kwargs:
+        path_kwargs["opacity"] = 1
+
+    m = viz(
+        data=data,
+        map_kwargs={"basemap_style": tiles, **map_kwargs},
+        polygon_kwargs={"get_fill_color": values_cmap, "filled": True, **polygon_kwargs},
+        scatterplot_kwargs={"get_fill_color": values_cmap, "filled": True, **scatterplot_kwargs},
+        path_kwargs={"get_color": values_cmap, **path_kwargs},
+    )
+
+    if legend:
+        legend_kwargs = legend_kwargs or {}
+
+        grid_size: int | tuple[int, int]
+        if scheme_a is scheme_b is None:
+            grid_size = legend_size_px
+        else:
+            grid_size_y = legend_size_px if scheme_a is None else k_a
+            grid_size_x = legend_size_px if scheme_b is None else k_b
+            grid_size = (grid_size_x, grid_size_y)
+
+        legend_fn = partial(
+            plot_bivariate_legend,
+            values_a=original_values_a,
+            values_b=original_values_b,
+            cmap=cmap,
+            label_a=column_a_label,
+            label_b=column_b_label,
+            tick_labels_a=tick_labels_a,
+            tick_labels_b=tick_labels_b,
+            font_colour="black",
+            grid_size=grid_size,
+            dark_mode=dark_mode,
+            **legend_kwargs,
+        )
+
+        return LonboardMapWithLegend(m=m, legend=legend_fn)
+
+    return m

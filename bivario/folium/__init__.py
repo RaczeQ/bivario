@@ -148,10 +148,7 @@ def explore_bivariate_data(
     original_values_a = gdf[column_a] if isinstance(column_a, str) else column_a
     original_values_b = gdf[column_b] if isinstance(column_b, str) else column_b
 
-    _values_a, _values_b = _validate_values(
-        gdf[column_a] if isinstance(column_a, str) else column_a,
-        gdf[column_b] if isinstance(column_b, str) else column_b,
-    )
+    _values_a, _values_b = _validate_values(original_values_a, original_values_b)
 
     # If tiles are not defined - set based on dark mode
     if tiles is None:
