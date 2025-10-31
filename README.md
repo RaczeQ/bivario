@@ -1,5 +1,5 @@
 # bivario
-Python library for plotting bivariate choropleth maps in Matplotlib and Folium.
+Python library for plotting bivariate choropleth maps in Matplotlib, Folium and Lonboard.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/bivario_logo.png" width="500"><br/>
@@ -43,6 +43,17 @@ from bivario import explore_bivariate_data
 from bivario.example_data import nyc_bike_trips
 
 explore_bivariate_data(
+    nyc_bike_trips(), "morning_starts", "morning_ends"
+)
+```
+
+Simple Lonboard map:
+
+```python
+from bivario import viz_bivariate_data
+from bivario.example_data import nyc_bike_trips
+
+viz_bivariate_data(
     nyc_bike_trips(), "morning_starts", "morning_ends"
 )
 ```
