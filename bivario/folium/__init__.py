@@ -3,11 +3,11 @@
 import warnings
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-import numpy as np
-from mapclassify import classify
-from mapclassify.classifiers import _format_intervals
 from matplotlib.colors import rgb2hex
 
+from bivario._alpha import prepare_alpha_values
+from bivario._constants import DARK_MODE_TILES_KEYWORDS
+from bivario._scheme import SCHEME_TYPE, apply_mapclassify
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
 from bivario.legend import plot_bivariate_legend
 
@@ -15,15 +15,9 @@ if TYPE_CHECKING:
     import folium
     import geopandas as gpd
     import xyzservices
-    from mapclassify.classifiers import MapClassifier
     from matplotlib.figure import Figure
 
     from bivario.typing import ValueInput
-
-DARK_MODE_TILES_KEYWORDS = ("dark",)
-
-
-SCHEME_TYPE = str | None | bool
 
 
 def explore_bivariate_data(
@@ -148,10 +142,7 @@ def explore_bivariate_data(
     original_values_a = gdf[column_a] if isinstance(column_a, str) else column_a
     original_values_b = gdf[column_b] if isinstance(column_b, str) else column_b
 
-    _values_a, _values_b = _validate_values(
-        gdf[column_a] if isinstance(column_a, str) else column_a,
-        gdf[column_b] if isinstance(column_b, str) else column_b,
-    )
+    values_a, values_b = _validate_values(original_values_a, original_values_b)
 
     # If tiles are not defined - set based on dark mode
     if tiles is None:
@@ -176,18 +167,10 @@ def explore_bivariate_data(
     set_alpha = alpha  # now its bool, but can be a list of values, then check if not empty
 
     if set_alpha:
-        if alpha_norm_quantile < 0 or alpha_norm_quantile > 1:
-            raise ValueError("alpha_norm_quantile must be between 0 and 1 (inclusive).")
-
-        alpha_values = np.sqrt(
-            np.minimum(
-                1,
-                np.maximum(
-                    _values_a / np.quantile(_values_a, alpha_norm_quantile),
-                    _values_b / np.quantile(_values_b, alpha_norm_quantile),
-                ),
-            )
+        alpha_values = prepare_alpha_values(
+            values_a=values_a, values_b=values_b, alpha_norm_quantile=alpha_norm_quantile
         ).tolist()
+
         if "style_kwds" not in kwargs:
             kwargs["style_kwds"] = {}
 
@@ -195,37 +178,16 @@ def explore_bivariate_data(
             opacity=0, fillOpacity=alpha_values[int(x["id"])]
         )
 
-    tick_labels_a = None
-    tick_labels_b = None
-
-    if isinstance(scheme, (tuple, list)):
-        scheme_a, scheme_b = scheme
-    else:
-        scheme_a = scheme_b = scheme
-
-    if isinstance(k, (tuple, list)):
-        k_a, k_b = k
-    else:
-        k_a = k_b = k
-
-    if isinstance(scheme_a, bool):
-        scheme_a = "NaturalBreaks" if scheme_a else None
-    if isinstance(scheme_b, bool):
-        scheme_b = "NaturalBreaks" if scheme_b else None
-
-    if scheme_a is not None:
-        binning_a = cast("MapClassifier", classify(_values_a, scheme=scheme_a, k=k_a))
-        _values_a = binning_a.yb
-        tick_labels_a = [_l.replace(".0", "") for _l in _format_intervals(binning_a, "{:,.1f}")[0]]
-
-    if scheme_b is not None:
-        binning_b = cast("MapClassifier", classify(_values_b, scheme=scheme_b, k=k_b))
-        _values_b = binning_b.yb
-        tick_labels_b = [_l.replace(".0", "") for _l in _format_intervals(binning_b, "{:,.1f}")[0]]
+    scheme_result = apply_mapclassify(values_a=values_a, values_b=values_b, scheme=scheme, k=k)
 
     cmap = get_bivariate_cmap(cmap)
 
-    values_cmap = cmap(values_a=_values_a, values_b=_values_b, normalize=True, dark_mode=dark_mode)
+    values_cmap = cmap(
+        values_a=scheme_result.values_a,
+        values_b=scheme_result.values_b,
+        normalize=True,
+        dark_mode=dark_mode,
+    )
 
     hex_values = [rgb2hex(tuple(values_cmap[i, :])) for i in range(values_cmap.shape[0])]
 
@@ -260,11 +222,11 @@ def explore_bivariate_data(
         legend_kwargs = legend_kwargs or {}
 
         grid_size: int | tuple[int, int]
-        if scheme_a is scheme_b is None:
+        if scheme_result.scheme_a is scheme_result.scheme_b is None:
             grid_size = legend_size_px
         else:
-            grid_size_y = legend_size_px if scheme_a is None else k_a
-            grid_size_x = legend_size_px if scheme_b is None else k_b
+            grid_size_y = legend_size_px if scheme_result.scheme_a is None else scheme_result.k_a
+            grid_size_x = legend_size_px if scheme_result.scheme_b is None else scheme_result.k_b
             grid_size = (grid_size_x, grid_size_y)
 
         ax = plot_bivariate_legend(
@@ -273,8 +235,8 @@ def explore_bivariate_data(
             cmap=cmap,
             label_a=column_a_label,
             label_b=column_b_label,
-            tick_labels_a=tick_labels_a,
-            tick_labels_b=tick_labels_b,
+            tick_labels_a=scheme_result.tick_labels_a,
+            tick_labels_b=scheme_result.tick_labels_b,
             font_colour="#333" if legend_background else None,
             grid_size=grid_size,
             dark_mode=dark_mode,

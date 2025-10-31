@@ -45,6 +45,7 @@ lint = ["pre-commit>=4.3.0", "ruff>=0.14.0"]
 notebook = [
     "geopandas>=1.0.1",
     "folium>=0.12.0",
+    "lonboard>=0.10.0",
     "duckdb>=1.4.1",
     "ipykernel>=6.30.1",
     "pyarrow>=21.0.0",
