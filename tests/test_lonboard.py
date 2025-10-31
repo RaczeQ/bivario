@@ -1,7 +1,11 @@
 """Test folium plotting functionality."""
 
+import tempfile
+
+import duckdb
 import geopandas as gpd
 import lonboard
+import pyarrow.parquet as pq
 import pytest
 
 from bivario import viz_bivariate_data
@@ -73,3 +77,39 @@ def test_different_schemes(
     viz_bivariate_data(
         nyc_data, column_a="morning_starts", column_b="morning_ends", scheme=scheme, k=k
     )
+
+
+def test_geometry_and_values(nyc_data: gpd.GeoDataFrame) -> None:
+    """Test if geometry and values columns can be passed individually."""
+    viz_bivariate_data(nyc_data.geometry, nyc_data["morning_starts"], nyc_data["morning_ends"])
+
+
+def test_raises_str_column_with_geometry_only(nyc_data: gpd.GeoDataFrame) -> None:
+    """Test if cannot parse str column if passed only geometry."""
+    with pytest.raises(TypeError):
+        viz_bivariate_data(nyc_data.geometry, "morning_starts", "morning_ends")
+
+
+def test_duckdb_input(nyc_data: gpd.GeoDataFrame) -> None:
+    """Test if DuckDB input can be parsed."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/data.parquet"
+        nyc_data.to_parquet(path)
+
+        duckdb.install_extension("spatial")
+        duckdb.load_extension("spatial")
+
+        rel = duckdb.read_parquet(path)
+
+        viz_bivariate_data(rel, "morning_starts", "morning_ends")
+
+
+def test_pyarrow_input(nyc_data: gpd.GeoDataFrame) -> None:
+    """Test if PyArrow input can be parsed."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/data.parquet"
+        nyc_data.to_parquet(path)
+
+        tbl = pq.read_table(path)
+
+        viz_bivariate_data(tbl, "morning_starts", "morning_ends")

@@ -46,7 +46,7 @@ notebook = [
     "geopandas>=1.0.1",
     "folium>=0.12.0",
     "lonboard>=0.10.0",
-    "duckdb>=1.4.1",
+    "duckdb<1.4.0", # Mismatch with Lonboard checks
     "ipykernel>=6.30.1",
     "pyarrow>=21.0.0",
 ]
