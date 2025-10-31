@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from bivario.legend import DPI, auto_rotate_xticks
+from bivario.legend import DPI, resize_fig
 
 
 class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
@@ -86,7 +86,7 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
                 self.css["border-radius"] = "4px"
                 self.css["background-clip"] = "padding-box"
 
-        self.resize_fig(fig=fig, ax=ax, legend_size_px=legend_size_px)
+        resize_fig(fig=fig, ax=ax, legend_size_px=legend_size_px)
 
         self.image = "data:image/svg+xml;base64," + self.figure_to_base64_string(fig)
 
@@ -125,47 +125,6 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
                 )
                 self.css["top"] = f"{legend_position_y}px"
                 self.css["right"] = f"{legend_position_x}px"
-
-    def resize_fig(
-        self, fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.1
-    ) -> None:
-        """Resize figure so that the Axes data area matches the target legend size in pixels."""
-        fig.canvas.draw()
-        renderer = fig.canvas.get_renderer()
-
-        # Get bounding boxes (in display / pixel coordinates)
-        bbox_ax = ax.get_window_extent(renderer)
-
-        # Compute inner data area size (in pixels)
-        data_width_px = bbox_ax.width
-        data_height_px = bbox_ax.height
-
-        while (
-            abs(legend_size_px - data_width_px) > tolerance_px
-            or abs(legend_size_px - data_height_px) > tolerance_px
-        ):
-            # Calculate scale factor so data area = target_data_px
-            scale = legend_size_px / min(data_width_px, data_height_px)
-
-            # Compute new figure size (inches)
-            w_in, h_in = fig.get_size_inches()
-            new_w_in = w_in * scale
-            new_h_in = h_in * scale
-
-            fig.set_size_inches(new_w_in, new_h_in)
-
-            auto_rotate_xticks(ax)
-
-            # Redraw with new size
-            fig.canvas.draw()
-
-            renderer = fig.canvas.get_renderer()
-
-            # Get bounding boxes (in display / pixel coordinates)
-            bbox_ax = ax.get_window_extent(renderer)
-
-            data_width_px = bbox_ax.width
-            data_height_px = bbox_ax.height
 
     def figure_to_base64_string(self, fig: Figure) -> str:
         """Convert Matplotlib figure to base64-encoded SVG string."""

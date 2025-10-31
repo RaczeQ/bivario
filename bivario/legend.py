@@ -7,6 +7,7 @@ import narwhals as nw
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from PIL import Image
 
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
@@ -202,3 +203,43 @@ def auto_rotate_xticks(ax: Axes, rotation: float = 45) -> None:
 
     if overlap:
         plt.setp(tick_labels, rotation=rotation, ha="right")
+
+
+def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.1) -> None:
+    """Resize figure so that the Axes data area matches the target legend size in pixels."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+
+    # Get bounding boxes (in display / pixel coordinates)
+    bbox_ax = ax.get_window_extent(renderer)
+
+    # Compute inner data area size (in pixels)
+    data_width_px = bbox_ax.width
+    data_height_px = bbox_ax.height
+
+    while (
+        abs(legend_size_px - data_width_px) > tolerance_px
+        or abs(legend_size_px - data_height_px) > tolerance_px
+    ):
+        # Calculate scale factor so data area = target_data_px
+        scale = legend_size_px / min(data_width_px, data_height_px)
+
+        # Compute new figure size (inches)
+        w_in, h_in = fig.get_size_inches()
+        new_w_in = w_in * scale
+        new_h_in = h_in * scale
+
+        fig.set_size_inches(new_w_in, new_h_in)
+
+        auto_rotate_xticks(ax)
+
+        # Redraw with new size
+        fig.canvas.draw()
+
+        renderer = fig.canvas.get_renderer()
+
+        # Get bounding boxes (in display / pixel coordinates)
+        bbox_ax = ax.get_window_extent(renderer)
+
+        data_width_px = bbox_ax.width
+        data_height_px = bbox_ax.height
