@@ -248,10 +248,24 @@ def viz_bivariate_data(
     narwhals_df = None
 
     if isinstance(column_a, str) or isinstance(column_b, str):
-        narwhals_df = nw.from_native(cast("IntoFrame", data))
+        try:
+            cols_to_select = []
+            if isinstance(column_a, str):
+                cols_to_select.append(column_a)
+            if isinstance(column_b, str):
+                cols_to_select.append(column_b)
 
-        original_values_a = narwhals_df[column_a] if isinstance(column_a, str) else column_a
-        original_values_b = narwhals_df[column_b] if isinstance(column_b, str) else column_b
+            narwhals_df = nw.from_native(cast("IntoFrame", data)).select(*cols_to_select)
+
+            if isinstance(narwhals_df, nw.LazyFrame):
+                narwhals_df = narwhals_df.collect()
+
+            original_values_a = narwhals_df[column_a] if isinstance(column_a, str) else column_a
+            original_values_b = narwhals_df[column_b] if isinstance(column_b, str) else column_b
+        except TypeError as ex:
+            raise TypeError(
+                "Cannot parse provided input as a source for loading str column."
+            ) from ex
     else:
         original_values_a = column_a
         original_values_b = column_b
