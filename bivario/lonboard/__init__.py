@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 import narwhals as nw
 import numpy as np
-from mapclassify import classify
-from mapclassify.classifiers import _format_intervals
 
+from bivario._alpha import prepare_alpha_values
+from bivario._constants import DARK_MODE_TILES_KEYWORDS
+from bivario._scheme import SCHEME_TYPE, apply_mapclassify
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
-from bivario.folium import DARK_MODE_TILES_KEYWORDS, SCHEME_TYPE
 from bivario.legend import plot_bivariate_legend, resize_fig
 
 if TYPE_CHECKING:
@@ -22,7 +22,6 @@ if TYPE_CHECKING:
         ScatterplotLayerKwargs,
     )
     from lonboard.types.map import MapKwargs
-    from mapclassify.classifiers import MapClassifier
     from matplotlib.figure import Figure
     from narwhals.typing import IntoFrame
 
@@ -257,7 +256,7 @@ def viz_bivariate_data(
         original_values_a = column_a
         original_values_b = column_b
 
-    _values_a, _values_b = _validate_values(original_values_a, original_values_b)
+    values_a, values_b = _validate_values(original_values_a, original_values_b)
 
     # If tiles are not defined - set based on dark mode
     if tiles is None:
@@ -280,50 +279,20 @@ def viz_bivariate_data(
     alpha_values = None
 
     if set_alpha:
-        if alpha_norm_quantile < 0 or alpha_norm_quantile > 1:
-            raise ValueError("alpha_norm_quantile must be between 0 and 1 (inclusive).")
-
-        alpha_values = np.sqrt(
-            np.minimum(
-                1,
-                np.maximum(
-                    _values_a / np.quantile(_values_a, alpha_norm_quantile),
-                    _values_b / np.quantile(_values_b, alpha_norm_quantile),
-                ),
-            )
+        alpha_values = prepare_alpha_values(
+            values_a=values_a, values_b=values_b, alpha_norm_quantile=alpha_norm_quantile
         ).reshape(-1, 1)
 
-    tick_labels_a = None
-    tick_labels_b = None
-
-    if isinstance(scheme, (tuple, list)):
-        scheme_a, scheme_b = scheme
-    else:
-        scheme_a = scheme_b = scheme
-
-    if isinstance(k, (tuple, list)):
-        k_a, k_b = k
-    else:
-        k_a = k_b = k
-
-    if isinstance(scheme_a, bool):
-        scheme_a = "NaturalBreaks" if scheme_a else None
-    if isinstance(scheme_b, bool):
-        scheme_b = "NaturalBreaks" if scheme_b else None
-
-    if scheme_a is not None:
-        binning_a = cast("MapClassifier", classify(_values_a, scheme=scheme_a, k=k_a))
-        _values_a = binning_a.yb
-        tick_labels_a = [_l.replace(".0", "") for _l in _format_intervals(binning_a, "{:,.1f}")[0]]
-
-    if scheme_b is not None:
-        binning_b = cast("MapClassifier", classify(_values_b, scheme=scheme_b, k=k_b))
-        _values_b = binning_b.yb
-        tick_labels_b = [_l.replace(".0", "") for _l in _format_intervals(binning_b, "{:,.1f}")[0]]
+    scheme_result = apply_mapclassify(values_a=values_a, values_b=values_b, scheme=scheme, k=k)
 
     cmap = get_bivariate_cmap(cmap)
 
-    values_cmap = cmap(values_a=_values_a, values_b=_values_b, normalize=True, dark_mode=dark_mode)
+    values_cmap = cmap(
+        values_a=scheme_result.values_a,
+        values_b=scheme_result.values_b,
+        normalize=True,
+        dark_mode=dark_mode,
+    )
 
     if alpha_values is not None:
         values_cmap = np.concatenate([values_cmap, alpha_values], axis=1)
@@ -380,11 +349,15 @@ def viz_bivariate_data(
 
         grid_size: int | tuple[int, int]
         numerical_grid_size = legend_max_grid_size or legend_size_px
-        if scheme_a is scheme_b is None:
+        if scheme_result.scheme_a is scheme_result.scheme_b is None:
             grid_size = numerical_grid_size
         else:
-            grid_size_y = numerical_grid_size if scheme_a is None else k_a
-            grid_size_x = numerical_grid_size if scheme_b is None else k_b
+            grid_size_y = (
+                numerical_grid_size if scheme_result.scheme_a is None else scheme_result.k_a
+            )
+            grid_size_x = (
+                numerical_grid_size if scheme_result.scheme_b is None else scheme_result.k_b
+            )
             grid_size = (grid_size_x, grid_size_y)
 
         def display_legend() -> None:
@@ -394,8 +367,8 @@ def viz_bivariate_data(
                 cmap=cmap,
                 label_a=column_a_label,
                 label_b=column_b_label,
-                tick_labels_a=tick_labels_a,
-                tick_labels_b=tick_labels_b,
+                tick_labels_a=scheme_result.tick_labels_a,
+                tick_labels_b=scheme_result.tick_labels_b,
                 font_colour="black",
                 grid_size=grid_size,
                 dark_mode=dark_mode,
