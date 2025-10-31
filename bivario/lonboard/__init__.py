@@ -22,6 +22,7 @@ if TYPE_CHECKING:
         ScatterplotLayerKwargs,
     )
     from lonboard.types.map import MapKwargs
+    from matplotlib.axes import Axes
     from matplotlib.figure import Figure
     from narwhals.typing import IntoFrame
 
@@ -33,7 +34,7 @@ class LonboardMapWithLegend:
     """Lonboard Map object with bivariate legend as Matplotlib Axes."""
 
     m: "Map"
-    legend: "Callable[..., None]"
+    legend: "Callable[..., Axes]"
 
     def _repr_mimebundle_(self, **kwargs: dict) -> tuple[dict, dict] | None:  # type: ignore[type-arg]
         # Delegate rendering to the map object
@@ -318,14 +319,11 @@ def viz_bivariate_data(
     scatterplot_kwargs = scatterplot_kwargs or {}
     path_kwargs = path_kwargs or {}
 
-    if "basemap_style" in map_kwargs:
-        map_kwargs.pop("legend")
+    map_kwargs["basemap_style"] = tiles
 
     # Polygon layer
-    if "filled" in polygon_kwargs:
-        polygon_kwargs.pop("filled")
-    if "get_fill_color" in polygon_kwargs:
-        polygon_kwargs.pop("get_fill_color")
+    polygon_kwargs["filled"] = True
+    polygon_kwargs["get_fill_color"] = values_cmap
 
     if "stroked" not in polygon_kwargs:
         polygon_kwargs["stroked"] = False
@@ -333,10 +331,8 @@ def viz_bivariate_data(
         polygon_kwargs["opacity"] = 1
 
     # Scatterplot layer
-    if "filled" in scatterplot_kwargs:
-        scatterplot_kwargs.pop("filled")
-    if "get_fill_color" in scatterplot_kwargs:
-        scatterplot_kwargs.pop("get_fill_color")
+    scatterplot_kwargs["filled"] = True
+    scatterplot_kwargs["get_fill_color"] = values_cmap
 
     if "stroked" not in scatterplot_kwargs:
         scatterplot_kwargs["stroked"] = False
@@ -344,18 +340,17 @@ def viz_bivariate_data(
         scatterplot_kwargs["opacity"] = 1
 
     # Path layer
-    if "get_color" in path_kwargs:
-        path_kwargs.pop("get_color")
+    path_kwargs["get_color"] = values_cmap
 
     if "opacity" not in path_kwargs:
         path_kwargs["opacity"] = 1
 
     m = viz(
         data=data,
-        map_kwargs={"basemap_style": tiles, **map_kwargs},
-        polygon_kwargs={"get_fill_color": values_cmap, "filled": True, **polygon_kwargs},
-        scatterplot_kwargs={"get_fill_color": values_cmap, "filled": True, **scatterplot_kwargs},
-        path_kwargs={"get_color": values_cmap, **path_kwargs},
+        map_kwargs=map_kwargs,
+        polygon_kwargs=polygon_kwargs,
+        scatterplot_kwargs=scatterplot_kwargs,
+        path_kwargs=path_kwargs,
     )
 
     if legend:
@@ -374,7 +369,7 @@ def viz_bivariate_data(
             )
             grid_size = (grid_size_x, grid_size_y)
 
-        def display_legend() -> None:
+        def display_legend() -> "Axes":
             ax = plot_bivariate_legend(
                 values_a=original_values_a,
                 values_b=original_values_b,
@@ -391,7 +386,9 @@ def viz_bivariate_data(
             )
             fig = cast("Figure", ax.figure)
             resize_fig(fig=fig, ax=ax, legend_size_px=legend_size_px)
-            fig.show()
+            # plt.show()
+
+            return ax
 
         return LonboardMapWithLegend(m=m, legend=display_legend)
 
