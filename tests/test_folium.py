@@ -7,7 +7,7 @@ import geopandas as gpd
 import pytest
 
 from bivario import explore_bivariate_data
-from bivario.folium import SCHEME_TYPE
+from bivario._scheme import SCHEME_TYPE
 from bivario.folium._legend import FloatBivariateMatplotlibLegend
 
 
