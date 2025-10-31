@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-10-31
+
 ### Added
 
 - Lonboard plotting support with `bivario.lonboard.viz_bivariate_data` [#11](https://github.com/RaczeQ/bivario/issues/11)
@@ -16,11 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed `GeoPandas` and `folium` from required dependencies.
 - Lowered required dependencies versions:
-    - colour-science>=0.4.0
-    - mapclassify>=2
-    - matplotlib>=3.3
-    - narwhals>=1.9.4
-    - numpy>=1.19
+  - colour-science>=0.4.0
+  - mapclassify>=2
+  - matplotlib>=3.3
+  - narwhals>=1.9.4
+  - numpy>=1.19
 
 ## [0.2.0] - 2025-10-22
 
@@ -41,7 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Matplotlib legend plotting functionality
 - Folium plotting functionality
 
-[Unreleased]: https://github.com/RaczeQ/bivario/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/RaczeQ/bivario/compare/0.3.0...HEAD
+
+[0.3.0]: https://github.com/RaczeQ/bivario/compare/0.2.0...0.3.0
 
 [0.2.0]: https://github.com/RaczeQ/bivario/compare/0.1.0...0.2.0
 
