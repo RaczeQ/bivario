@@ -13,6 +13,7 @@ from bivario.cmap import (
 )
 from bivario.folium import explore_bivariate_data
 from bivario.legend import plot_bivariate_legend
+from bivario.lonboard import viz_bivariate_data
 
 __app_name__ = "bivario"
 __version__ = "0.2.0"
@@ -25,4 +26,5 @@ __all__ = [
     "explore_bivariate_data",
     "get_bivariate_cmap",
     "plot_bivariate_legend",
+    "viz_bivariate_data",
 ]
