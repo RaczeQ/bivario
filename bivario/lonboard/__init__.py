@@ -188,6 +188,7 @@ def viz_bivariate_data(
 
         Display a legend in another cell:
         >>> x.legend()
+        <Axes: xlabel='morning_ends', ylabel='morning_starts'>
 
         Get lonboard.Map object from the result:
         >>> x.m
