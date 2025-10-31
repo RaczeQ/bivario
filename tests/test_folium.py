@@ -11,14 +11,6 @@ from bivario.folium import SCHEME_TYPE
 from bivario.folium._legend import FloatBivariateMatplotlibLegend
 
 
-@pytest.fixture  # type: ignore
-def dummy_data() -> gpd.GeoDataFrame:
-    """Example geodataframe."""
-    return gpd.GeoDataFrame(
-        dict(a=[1, 2], b=[10, 100]), geometry=gpd.GeoSeries.from_xy([0, 1], [1, 1], crs=4326)
-    )
-
-
 def test_explore_bivariate_data(dummy_data: gpd.GeoDataFrame) -> None:
     """Test that explore_bivariate_data can be run without error."""
     m = explore_bivariate_data(dummy_data, column_a="a", column_b="b")
@@ -60,13 +52,18 @@ def test_different_alpha_quantile_plotting(dummy_data: gpd.GeoDataFrame) -> None
 )  # type: ignore
 @pytest.mark.parametrize("k", [3, (3, 5)])  # type: ignore
 def test_different_schemes(
-    dummy_data: gpd.GeoDataFrame,
+    nyc_data: gpd.GeoDataFrame,
     scheme: SCHEME_TYPE | tuple[SCHEME_TYPE, SCHEME_TYPE],
     k: int | tuple[int, int],
 ) -> None:
     """Test that dark_mode can be set."""
     explore_bivariate_data(
-        dummy_data, column_a="a", column_b="b", scheme=scheme, k=k, legend_size_px=32
+        nyc_data,
+        column_a="morning_starts",
+        column_b="morning_ends",
+        scheme=scheme,
+        k=k,
+        legend_size_px=32,
     )
 
 
