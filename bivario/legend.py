@@ -205,7 +205,7 @@ def auto_rotate_xticks(ax: Axes, rotation: float = 45) -> None:
         plt.setp(tick_labels, rotation=rotation, ha="right")
 
 
-def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.1) -> None:
+def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.5) -> None:
     """Resize figure so that the Axes data area matches the target legend size in pixels."""
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
