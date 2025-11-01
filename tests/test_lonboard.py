@@ -7,6 +7,7 @@ import geopandas as gpd
 import lonboard
 import pyarrow.parquet as pq
 import pytest
+from matplotlib.axes import Axes
 
 from bivario import viz_bivariate_data
 from bivario._scheme import SCHEME_TYPE
@@ -24,8 +25,11 @@ def dummy_data() -> gpd.GeoDataFrame:
 def test_viz_bivariate_data(dummy_data: gpd.GeoDataFrame) -> None:
     """Test that viz_bivariate_data can be run without error."""
     m = viz_bivariate_data(dummy_data, column_a="a", column_b="b")
+    ax = m.legend()
 
     assert isinstance(m, LonboardMapWithLegend)
+    assert isinstance(m.m, lonboard.Map)
+    assert isinstance(ax, Axes)
 
 
 def test_dark_mode_plotting(dummy_data: gpd.GeoDataFrame) -> None:
@@ -74,20 +78,23 @@ def test_different_schemes(
     k: int | tuple[int, int],
 ) -> None:
     """Test that dark_mode can be set."""
-    viz_bivariate_data(
+    x = viz_bivariate_data(
         nyc_data, column_a="morning_starts", column_b="morning_ends", scheme=scheme, k=k
     )
+    x.legend()
 
 
 def test_geometry_and_values(nyc_data: gpd.GeoDataFrame) -> None:
     """Test if geometry and values columns can be passed individually."""
-    viz_bivariate_data(nyc_data.geometry, nyc_data["morning_starts"], nyc_data["morning_ends"])
+    x = viz_bivariate_data(nyc_data.geometry, nyc_data["morning_starts"], nyc_data["morning_ends"])
+    x.legend()
 
 
 def test_raises_str_column_with_geometry_only(nyc_data: gpd.GeoDataFrame) -> None:
     """Test if cannot parse str column if passed only geometry."""
     with pytest.raises(TypeError):
-        viz_bivariate_data(nyc_data.geometry, "morning_starts", "morning_ends")
+        x = viz_bivariate_data(nyc_data.geometry, "morning_starts", "morning_ends")
+        x.legend()
 
 
 def test_duckdb_input(nyc_data: gpd.GeoDataFrame) -> None:
@@ -101,7 +108,8 @@ def test_duckdb_input(nyc_data: gpd.GeoDataFrame) -> None:
 
         rel = duckdb.read_parquet(path)
 
-        viz_bivariate_data(rel, "morning_starts", "morning_ends")
+        x = viz_bivariate_data(rel, "morning_starts", "morning_ends")
+        x.legend()
 
 
 def test_pyarrow_input(nyc_data: gpd.GeoDataFrame) -> None:
@@ -112,4 +120,5 @@ def test_pyarrow_input(nyc_data: gpd.GeoDataFrame) -> None:
 
         tbl = pq.read_table(path)
 
-        viz_bivariate_data(tbl, "morning_starts", "morning_ends")
+        x = viz_bivariate_data(tbl, "morning_starts", "morning_ends")
+        x.legend()

@@ -35,6 +35,7 @@ def explore_bivariate_data(
     alpha_norm_quantile: float = 0.9,
     legend: bool = True,
     legend_size_px: int = 200,
+    legend_max_grid_size: int | None = 100,
     legend_loc: Literal["bl", "br", "tl", "tr"] | None = None,
     legend_offset_px: float | tuple[float, float] | None = None,
     legend_background: bool = True,
@@ -74,6 +75,8 @@ def explore_bivariate_data(
             value below 1 to avoid outliers affecting the transparency too much. Defaults to 0.9.
         legend (bool, optional): Whether to add a bivariate legend to the map. Defaults to True.
         legend_size_px (int, optional): Size of the legend in pixels. Defaults to 200.
+        legend_max_grid_size (int | None, optional): Max size of the legend grid used for plotting
+            the legend. Used with scheme=False. Defaults to 100.
         legend_loc (Literal["bl", "br", "tl", "tr"] | None, optional): Location of the legend
             on the map. Can be "bl" (bottom-left), "br" (bottom-right), "tl" (top-left),
             or "tr" (top-right). Defaults to "bl".
@@ -222,11 +225,16 @@ def explore_bivariate_data(
         legend_kwargs = legend_kwargs or {}
 
         grid_size: int | tuple[int, int]
+        numerical_grid_size = legend_max_grid_size or legend_size_px
         if scheme_result.scheme_a is scheme_result.scheme_b is None:
-            grid_size = legend_size_px
+            grid_size = numerical_grid_size
         else:
-            grid_size_y = legend_size_px if scheme_result.scheme_a is None else scheme_result.k_a
-            grid_size_x = legend_size_px if scheme_result.scheme_b is None else scheme_result.k_b
+            grid_size_y = (
+                numerical_grid_size if scheme_result.scheme_a is None else scheme_result.k_a
+            )
+            grid_size_x = (
+                numerical_grid_size if scheme_result.scheme_b is None else scheme_result.k_b
+            )
             grid_size = (grid_size_x, grid_size_y)
 
         ax = plot_bivariate_legend(

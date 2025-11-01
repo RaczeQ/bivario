@@ -205,7 +205,7 @@ def auto_rotate_xticks(ax: Axes, rotation: float = 45) -> None:
         plt.setp(tick_labels, rotation=rotation, ha="right")
 
 
-def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.1) -> None:
+def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.5) -> None:
     """Resize figure so that the Axes data area matches the target legend size in pixels."""
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
@@ -217,17 +217,28 @@ def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float =
     data_width_px = bbox_ax.width
     data_height_px = bbox_ax.height
 
+    max_tries = 1000
+    total_tries = 0
+
     while (
         abs(legend_size_px - data_width_px) > tolerance_px
         or abs(legend_size_px - data_height_px) > tolerance_px
     ):
+        if total_tries >= max_tries:
+            w_in, h_in = fig.get_size_inches()
+            raise RuntimeError(
+                "Cannot resize fig to a given tolerance. "
+                f"Current size: {w_in=} ({data_width_px=}), {h_in=} ({data_height_px=}). "
+                f"Expected size: {legend_size_px=}."
+            )
         # Calculate scale factor so data area = target_data_px
-        scale = legend_size_px / min(data_width_px, data_height_px)
+        width_scale = legend_size_px / data_width_px
+        height_scale = legend_size_px / data_height_px
 
         # Compute new figure size (inches)
         w_in, h_in = fig.get_size_inches()
-        new_w_in = w_in * scale
-        new_h_in = h_in * scale
+        new_w_in = w_in * width_scale
+        new_h_in = h_in * height_scale
 
         fig.set_size_inches(new_w_in, new_h_in)
 
@@ -243,3 +254,5 @@ def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float =
 
         data_width_px = bbox_ax.width
         data_height_px = bbox_ax.height
+
+        total_tries += 1
