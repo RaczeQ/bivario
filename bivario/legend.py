@@ -217,17 +217,28 @@ def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float =
     data_width_px = bbox_ax.width
     data_height_px = bbox_ax.height
 
+    max_tries = 1000
+    total_tries = 0
+
     while (
         abs(legend_size_px - data_width_px) > tolerance_px
         or abs(legend_size_px - data_height_px) > tolerance_px
     ):
+        if total_tries >= max_tries:
+            w_in, h_in = fig.get_size_inches()
+            raise RuntimeError(
+                f"Cannot resize fig to a given tolerance. Current size: {w_in=}, {h_in=}"
+            )
         # Calculate scale factor so data area = target_data_px
-        scale = legend_size_px / min(data_width_px, data_height_px)
+        width_scale = legend_size_px / data_width_px
+        height_scale = legend_size_px / data_height_px
 
         # Compute new figure size (inches)
         w_in, h_in = fig.get_size_inches()
-        new_w_in = w_in * scale
-        new_h_in = h_in * scale
+        new_w_in = w_in * width_scale
+        new_h_in = h_in * height_scale
+
+        print(f"{w_in=}, {h_in=}, {new_w_in=}, {new_h_in=}")
 
         fig.set_size_inches(new_w_in, new_h_in)
 
@@ -243,3 +254,5 @@ def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float =
 
         data_width_px = bbox_ax.width
         data_height_px = bbox_ax.height
+
+        total_tries += 1
