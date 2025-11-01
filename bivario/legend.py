@@ -241,7 +241,6 @@ def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float =
         new_h_in = h_in * height_scale
 
         print(f"{w_in=}, {h_in=}, {new_w_in=}, {new_h_in=}")
-        print(f"{legend_size_px=}, {data_width_px=}, {data_height_px=}")
 
         fig.set_size_inches(new_w_in, new_h_in)
 
@@ -257,5 +256,7 @@ def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float =
 
         data_width_px = bbox_ax.width
         data_height_px = bbox_ax.height
+
+        print(f"{legend_size_px=}, {data_width_px=}, {data_height_px=}")
 
         total_tries += 1
