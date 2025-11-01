@@ -154,8 +154,8 @@ def viz_bivariate_data(
             If True, will return LonboardMapWithLegend object with lonboard map and legend function.
             If False, will return lonboard.Map. Defaults to True.
         legend_size_px (int, optional): Size of the legend in pixels. Defaults to 400.
-        legend_max_grid_size (int | None, optional): Size of the legend grid used for plotting
-            the legend. Defaults to 100.
+        legend_max_grid_size (int | None, optional): Max size of the legend grid used for plotting
+            the legend. Used with scheme=False. Defaults to 100.
         legend_tick_fontsize_px (int, optional): Size of the ticks and labels for the legend
             in pixels. Defaults to 16.
         legend_kwargs (dict[str, Any] | None, optional): Additional keyword arguments for the
