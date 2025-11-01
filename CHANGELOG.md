@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.0] - 2025-11-01
-
 ## [0.3.0] - 2025-10-31
 
 ### Added
@@ -45,9 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Matplotlib legend plotting functionality
 - Folium plotting functionality
 
-[Unreleased]: https://github.com/RaczeQ/bivario/compare/0.4.0...HEAD
-
-[0.4.0]: https://github.com/RaczeQ/bivario/compare/0.3.0...0.4.0
+[Unreleased]: https://github.com/RaczeQ/bivario/compare/0.3.0...HEAD
 
 [0.3.0]: https://github.com/RaczeQ/bivario/compare/0.2.0...0.3.0
 
