@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Matplotlib example notebook
+- Option to pass `**kwargs` to `get_bivariate_cmap` function
+
 ## [0.3.0] - 2025-10-31
 
 ### Added
