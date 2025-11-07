@@ -29,6 +29,11 @@ With uv:
 uv add bivario
 ```
 
+With conda:
+```
+conda install conda-forge::bivario
+```
+
 # Usage
 
 <p align="center">
