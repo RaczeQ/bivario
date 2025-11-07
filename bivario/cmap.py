@@ -335,13 +335,16 @@ class AccentsBivariateColourmap(BivariateColourmap):
         )._apply_colours(values_a, values_b)
 
 
-def get_bivariate_cmap(cmap: str | BivariateColourmap | None = None) -> BivariateColourmap:
+def get_bivariate_cmap(
+    cmap: str | BivariateColourmap | None = None, **kwargs: Any
+) -> BivariateColourmap:
     """
     Return a BivariateColourmap object.
 
     Args:
         cmap (str | BivariateColourmap | None, optional): Colourmap name or object.
             If None, will load defalt named palette - rosewood_pine. Defaults to None.
+        **kwargs (Any): Additional keyword arguments for the NamedBivariateColourmap.
 
     Raises:
         TypeError: If provided cmap object is of unknown type.
@@ -357,7 +360,7 @@ def get_bivariate_cmap(cmap: str | BivariateColourmap | None = None) -> Bivariat
     if isinstance(cmap, BivariateColourmap):
         return cmap
     if isinstance(cmap, str):
-        return NamedBivariateColourmap(cmap)
+        return NamedBivariateColourmap(cmap, **kwargs)
 
     raise TypeError(
         "get_bivariate_cmap expects None or an instance of a str or BivariateColourmap. "
