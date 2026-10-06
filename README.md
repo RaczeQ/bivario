@@ -48,9 +48,7 @@ Simple Folium map:
 from bivario import explore_bivariate_data
 from bivario.example_data import nyc_bike_trips
 
-explore_bivariate_data(
-    nyc_bike_trips(), "morning_starts", "morning_ends"
-)
+explore_bivariate_data(nyc_bike_trips(), "morning_starts", "morning_ends")
 ```
 
 Simple Lonboard map:
@@ -59,9 +57,7 @@ Simple Lonboard map:
 from bivario import viz_bivariate_data
 from bivario.example_data import nyc_bike_trips
 
-viz_bivariate_data(
-    nyc_bike_trips(), "morning_starts", "morning_ends"
-)
+viz_bivariate_data(nyc_bike_trips(), "morning_starts", "morning_ends")
 ```
 
 In dark mode:
@@ -74,7 +70,7 @@ explore_bivariate_data(
     nyc_bike_trips(),
     column_a="morning_starts",
     column_b="morning_ends",
-    dark_mode=True, # default is False
+    dark_mode=True,  # default is False
 )
 ```
 
@@ -85,10 +81,7 @@ from bivario import explore_bivariate_data
 from bivario.example_data import nyc_bike_trips
 
 explore_bivariate_data(
-    nyc_bike_trips(),
-    column_a="morning_starts",
-    column_b="morning_ends",
-    cmap="bubblegum"
+    nyc_bike_trips(), column_a="morning_starts", column_b="morning_ends", cmap="bubblegum"
 )
 ```
 
@@ -108,7 +101,7 @@ explore_bivariate_data(
     column_b="morning_ends",
     dark_mode=True,
     cmap="late_sunset",
-    scheme=False, # or set to None
+    scheme=False,  # or set to None
     legend_size_px=300,
 )
 ```
