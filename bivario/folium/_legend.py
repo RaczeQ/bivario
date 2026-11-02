@@ -37,6 +37,7 @@ class FloatBivariateMatplotlibLegend(MacroElement):  # type: ignore[misc]
             </img>
             {% endmacro %}
             """
+
     )
 
     def __init__(
