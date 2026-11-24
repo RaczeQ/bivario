@@ -192,7 +192,7 @@ def viz_bivariate_data(
 
         Get lonboard.Map object from the result:
         >>> x.m
-        Map(...)
+        <lonboard._map.Map object at 0x...>
 
         Plot in dark mode with different colormap and different binning:
         >>> from bivario.example_data import nyc_bike_trips
@@ -234,7 +234,7 @@ def viz_bivariate_data(
         ...     column_b="morning_ends",
         ...     legend=False,
         ... )
-        Map(...)
+        <lonboard._map.Map object at 0x...>
     """
     try:
         from lonboard import viz
@@ -319,7 +319,12 @@ def viz_bivariate_data(
     scatterplot_kwargs = scatterplot_kwargs or {}
     path_kwargs = path_kwargs or {}
 
-    map_kwargs["basemap_style"] = tiles
+    try:
+        from lonboard.basemap import MaplibreBasemap
+
+        map_kwargs["basemap"] = MaplibreBasemap(style=tiles)
+    except ImportError:  # lonboard<0.13
+        map_kwargs["basemap_style"] = tiles
 
     # Polygon layer
     polygon_kwargs["filled"] = True

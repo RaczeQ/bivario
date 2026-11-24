@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default basemaps of Folium and Lonboard maps from CARTO to OpenFreeMap (Positron and Dark), since raster tiles of CARTO require an API key now
 - Matplotlib example draws its basemaps with basemaplibre instead of contextily
 
+### Fixed
+
+- Lonboard maps with lonboard 0.13 and newer
+
 ## [0.3.1] - 2025-11-07
 
 ### Added

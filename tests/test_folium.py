@@ -28,8 +28,11 @@ def test_dark_mode_plotting(dummy_data: gpd.GeoDataFrame) -> None:
 )  # type: ignore
 def test_default_tiles(dummy_data: gpd.GeoDataFrame, dark_mode: bool | None, style: str) -> None:
     """Test that the default basemap is a vector style of OpenFreeMap."""
-    m = explore_bivariate_data(dummy_data, column_a="a", column_b="b", dark_mode=dark_mode)
-    html = m.get_root().render()
+    html = (
+        explore_bivariate_data(dummy_data, column_a="a", column_b="b", dark_mode=dark_mode)
+        .get_root()
+        .render()
+    )
 
     assert f"https://tiles.openfreemap.org/styles/{style}" in html
     assert "leaflet-maplibre-gl.js" in html
@@ -38,8 +41,11 @@ def test_default_tiles(dummy_data: gpd.GeoDataFrame, dark_mode: bool | None, sty
 
 def test_custom_tiles(dummy_data: gpd.GeoDataFrame) -> None:
     """Test that given tiles replace the default basemap."""
-    m = explore_bivariate_data(dummy_data, column_a="a", column_b="b", tiles="OpenStreetMap")
-    html = m.get_root().render()
+    html = (
+        explore_bivariate_data(dummy_data, column_a="a", column_b="b", tiles="OpenStreetMap")
+        .get_root()
+        .render()
+    )
 
     assert "tile.openstreetmap.org" in html
     assert "openfreemap" not in html
