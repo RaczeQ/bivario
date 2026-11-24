@@ -16,6 +16,8 @@ class MapLibreLayer(JSCSSMixin, TileLayer):  # type: ignore[misc]
                 Object.assign({{ this._parent.get_name() }}.options, {
                     minZoom: {{ this.min_zoom }}, maxZoom: {{ this.max_zoom }},
                 });
+                // Folium >= 0.15 also does it on its own.
+                {{ this.get_name() }}.addTo({{ this._parent.get_name() }});
             {% endmacro %}
             """
     )

@@ -8,6 +8,7 @@ import pytest
 
 from bivario import explore_bivariate_data
 from bivario._scheme import SCHEME_TYPE
+from bivario.folium._basemap import MapLibreLayer
 from bivario.folium._legend import FloatBivariateMatplotlibLegend
 
 
@@ -60,6 +61,16 @@ def test_zoom_limits(dummy_data: gpd.GeoDataFrame) -> None:
     )
 
     assert "minZoom: 5, maxZoom: 12" in html
+
+
+def test_basemap_attaches_itself() -> None:
+    """Test that the basemap adds itself to the map, as Folium < 0.15 does not do it."""
+    m = folium.Map(tiles=None)
+    layer = MapLibreLayer("style.json").add_to(m)
+
+    script = layer._template.module.script(layer, {})
+
+    assert f"{layer.get_name()}.addTo({m.get_name()});" in script
 
 
 def test_column_values_plotting(dummy_data: gpd.GeoDataFrame) -> None:

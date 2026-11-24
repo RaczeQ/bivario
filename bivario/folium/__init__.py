@@ -272,10 +272,10 @@ def _get_default_tiles(dark_mode: bool, kwargs: dict[str, Any]) -> "folium.TileL
         from bivario.folium._basemap import MapLibreLayer
     except (ImportError, ModuleNotFoundError) as ex:
         raise ImportError(
-            "The 'folium>=0.12' package "
+            "The 'folium>=0.14' package "
             "is required for plotting folium map. You can install it using "
-            "'conda install -c conda-forge \"folium>=0.12\"' "
-            "or 'pip install \"folium>=0.12\"'."
+            "'conda install -c conda-forge \"folium>=0.14\"' "
+            "or 'pip install \"folium>=0.14\"'."
         ) from ex
 
     # Folium applies the limits of zoom only to tiles that it creates on its own.
