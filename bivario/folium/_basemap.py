@@ -12,8 +12,10 @@ class MapLibreLayer(JSCSSMixin, TileLayer):  # type: ignore[misc]
         """
             {% macro script(this,kwargs) %}
                 var {{ this.get_name() }} = L.maplibreGL({style: {{ this.tiles|tojson }}});
-                {{ this._parent.get_name() }}
-                    .setMinZoom({{ this.min_zoom }}).setMaxZoom({{ this.max_zoom }});
+                // Not with setMinZoom: its animation of the zoom would cancel fitBounds.
+                Object.assign({{ this._parent.get_name() }}.options, {
+                    minZoom: {{ this.min_zoom }}, maxZoom: {{ this.max_zoom }},
+                });
             {% endmacro %}
             """
     )

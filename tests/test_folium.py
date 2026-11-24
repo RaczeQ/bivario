@@ -59,7 +59,7 @@ def test_zoom_limits(dummy_data: gpd.GeoDataFrame) -> None:
         .render()
     )
 
-    assert ".setMinZoom(5).setMaxZoom(12)" in html
+    assert "minZoom: 5, maxZoom: 12" in html
 
 
 def test_column_values_plotting(dummy_data: gpd.GeoDataFrame) -> None:
