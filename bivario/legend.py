@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from matplotlib.ticker import FixedLocator
 from matplotlib.transforms import nonsingular
 from PIL import Image
 
@@ -206,54 +207,24 @@ def auto_rotate_xticks(ax: Axes, rotation: float = 45) -> None:
         plt.setp(tick_labels, rotation=rotation, ha="right")
 
 
-def resize_fig(fig: Figure, ax: Axes, legend_size_px: int, tolerance_px: float = 0.5) -> None:
+def resize_fig(fig: Figure, ax: Axes, legend_size_px: int) -> None:
     """Resize figure so that the Axes data area matches the target legend size in pixels."""
-    fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
 
-    # Get bounding boxes (in display / pixel coordinates)
-    bbox_ax = ax.get_window_extent(renderer)
+    def place_axes(left: float, bottom: float) -> None:
+        width, height = fig.bbox.size
+        ax.set_position(
+            (left / width, bottom / height, legend_size_px / width, legend_size_px / height)
+        )
 
-    # Compute inner data area size (in pixels)
-    data_width_px = bbox_ax.width
-    data_height_px = bbox_ax.height
+    # Ticks depend on the size of the axes, so it has to be set before measuring the labels.
+    fig.set_layout_engine("none")
+    place_axes(0, 0)
+    auto_rotate_xticks(ax)
+    # A rounding error of the size could still change them.
+    for axis in (ax.xaxis, ax.yaxis):
+        axis.set_major_locator(FixedLocator(axis.get_majorticklocs()))
 
-    max_tries = 1000
-    total_tries = 0
-
-    while (
-        abs(legend_size_px - data_width_px) > tolerance_px
-        or abs(legend_size_px - data_height_px) > tolerance_px
-    ):
-        if total_tries >= max_tries:
-            w_in, h_in = fig.get_size_inches()
-            raise RuntimeError(
-                "Cannot resize fig to a given tolerance. "
-                f"Current size: {w_in=} ({data_width_px=}), {h_in=} ({data_height_px=}). "
-                f"Expected size: {legend_size_px=}."
-            )
-        # Calculate scale factor so data area = target_data_px
-        width_scale = legend_size_px / data_width_px
-        height_scale = legend_size_px / data_height_px
-
-        # Compute new figure size (inches)
-        w_in, h_in = fig.get_size_inches()
-        new_w_in = w_in * width_scale
-        new_h_in = h_in * height_scale
-
-        fig.set_size_inches(new_w_in, new_h_in)
-
-        auto_rotate_xticks(ax)
-
-        # Redraw with new size
-        fig.canvas.draw()
-
-        renderer = fig.canvas.get_renderer()
-
-        # Get bounding boxes (in display / pixel coordinates)
-        bbox_ax = ax.get_window_extent(renderer)
-
-        data_width_px = bbox_ax.width
-        data_height_px = bbox_ax.height
-
-        total_tries += 1
+    bbox = ax.get_tightbbox()
+    pad = plt.rcParams["figure.constrained_layout.w_pad"] * fig.dpi
+    fig.set_size_inches((bbox.size + 2 * pad) / fig.dpi)
+    place_axes(pad - bbox.x0, pad - bbox.y0)
