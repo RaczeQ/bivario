@@ -388,8 +388,8 @@ def _normalize_values(values: "NumericArray") -> "NumericArray":
     v_min: float = values.astype(float).min()
     v_max: float = values.astype(float).max()
 
-    # Rescale values to fit into colourmap range (0->1)
-    return (values - v_min) / (v_max - v_min)
+    # Rescale values to fit into colourmap range (0->1), constant values to 0
+    return (values - v_min) / ((v_max - v_min) or 1)
 
 
 def _values_to_numpy(values: "ValueInput") -> "NumericArray":

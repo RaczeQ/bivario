@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from matplotlib.transforms import nonsingular
 from PIL import Image
 
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
@@ -96,14 +97,14 @@ def plot_bivariate_legend(
     _set_colour_theme(ax, colour)
     if tick_labels_a is None:
         y_min = float(parsed_values_a.min())
-        y_max = float(parsed_values_a.max())
+        y_max = nonsingular(y_min, float(parsed_values_a.max()), expander=1)[1]
     else:
         y_min = 0
         y_max = legend_cmap.shape[0]
 
     if tick_labels_b is None:
         x_min = float(parsed_values_b.min())
-        x_max = float(parsed_values_b.max())
+        x_max = nonsingular(x_min, float(parsed_values_b.max()), expander=1)[1]
     else:
         x_min = 0
         x_max = legend_cmap.shape[1]

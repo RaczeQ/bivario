@@ -73,6 +73,12 @@ def test_basemap_attaches_itself() -> None:
     assert f"{layer.get_name()}.addTo({m.get_name()});" in script
 
 
+def test_constant_values(dummy_data: gpd.GeoDataFrame) -> None:
+    """Test that columns of constant values can be plotted."""
+    explore_bivariate_data(dummy_data, column_a=[5, 5], column_b=[7, 7])
+    explore_bivariate_data(dummy_data, column_a=[5, 5], column_b="b", scheme=False)
+
+
 def test_column_values_plotting(dummy_data: gpd.GeoDataFrame) -> None:
     """Test that dark_mode can be set."""
     explore_bivariate_data(dummy_data, column_a=[100, 200], column_b=[41, 53])

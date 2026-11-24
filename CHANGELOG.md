@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Lonboard maps with lonboard 0.13 and newer
+- Maps and legends of columns with constant values
 
 ## [0.3.1] - 2025-11-07
 
