@@ -138,17 +138,6 @@ def explore_bivariate_data(
     """
     # alpha - yes / no - allow iterable as list of floats between 0 and 1
 
-    try:
-        from bivario.folium._basemap import MapLibreLayer
-        from bivario.folium._legend import FloatBivariateMatplotlibLegend
-    except (ImportError, ModuleNotFoundError) as ex:
-        raise ImportError(
-            "The 'folium>=0.12' package "
-            "is required for plotting folium map. You can install it using "
-            "'conda install -c conda-forge \"folium>=0.12\"' "
-            "or 'pip install \"folium>=0.12\"'."
-        ) from ex
-
     for column in (column_a, column_b):
         if isinstance(column, str) and column not in gdf.columns:
             raise ValueError(f"Column '{column}' not found in GeoDataFrame.")
@@ -163,7 +152,7 @@ def explore_bivariate_data(
         if dark_mode is None:
             dark_mode = False
 
-        tiles = MapLibreLayer(DARK_STYLE if dark_mode else LIGHT_STYLE)
+        tiles = _get_default_tiles(dark_mode, kwargs)
     # If tiles are defined, set dark mode based on tiles if not defined
     elif dark_mode is None:
         dark_mode = False
@@ -223,6 +212,16 @@ def explore_bivariate_data(
     )
 
     if legend:
+        try:
+            from bivario.folium._legend import FloatBivariateMatplotlibLegend
+        except (ImportError, ModuleNotFoundError) as ex:
+            raise ImportError(
+                "The 'folium>=0.12' package "
+                "is required for showing legend. You can install it using "
+                "'conda install -c conda-forge \"folium>=0.12\"' "
+                "or 'pip install \"folium>=0.12\"'."
+            ) from ex
+
         legend_kwargs = legend_kwargs or {}
 
         grid_size: int | tuple[int, int]
@@ -266,3 +265,19 @@ def explore_bivariate_data(
         ).add_to(m)
 
     return m
+
+
+def _get_default_tiles(dark_mode: bool, kwargs: dict[str, Any]) -> "folium.TileLayer":
+    try:
+        from bivario.folium._basemap import MapLibreLayer
+    except (ImportError, ModuleNotFoundError) as ex:
+        raise ImportError(
+            "The 'folium>=0.12' package "
+            "is required for plotting folium map. You can install it using "
+            "'conda install -c conda-forge \"folium>=0.12\"' "
+            "or 'pip install \"folium>=0.12\"'."
+        ) from ex
+
+    # Folium applies the limits of zoom only to tiles that it creates on its own.
+    zoom_limits = {key: kwargs[key] for key in ("min_zoom", "max_zoom") if key in kwargs}
+    return MapLibreLayer(DARK_STYLE if dark_mode else LIGHT_STYLE, **zoom_limits)

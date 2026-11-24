@@ -51,6 +51,17 @@ def test_custom_tiles(dummy_data: gpd.GeoDataFrame) -> None:
     assert "openfreemap" not in html
 
 
+def test_zoom_limits(dummy_data: gpd.GeoDataFrame) -> None:
+    """Test that given zoom limits apply to the default basemap."""
+    html = (
+        explore_bivariate_data(dummy_data, column_a="a", column_b="b", min_zoom=5, max_zoom=12)
+        .get_root()
+        .render()
+    )
+
+    assert ".setMinZoom(5).setMaxZoom(12)" in html
+
+
 def test_column_values_plotting(dummy_data: gpd.GeoDataFrame) -> None:
     """Test that dark_mode can be set."""
     explore_bivariate_data(dummy_data, column_a=[100, 200], column_b=[41, 53])

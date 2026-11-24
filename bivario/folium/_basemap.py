@@ -2,7 +2,7 @@
 
 from folium import TileLayer
 from folium.elements import JSCSSMixin
-from folium.template import Template
+from jinja2 import Template
 
 
 class MapLibreLayer(JSCSSMixin, TileLayer):  # type: ignore[misc]
@@ -12,7 +12,8 @@ class MapLibreLayer(JSCSSMixin, TileLayer):  # type: ignore[misc]
         """
             {% macro script(this,kwargs) %}
                 var {{ this.get_name() }} = L.maplibreGL({style: {{ this.tiles|tojson }}});
-                {{ this._parent.get_name() }}.setMaxZoom(20);
+                {{ this._parent.get_name() }}
+                    .setMinZoom({{ this.min_zoom }}).setMaxZoom({{ this.max_zoom }});
             {% endmacro %}
             """
     )
@@ -29,12 +30,16 @@ class MapLibreLayer(JSCSSMixin, TileLayer):  # type: ignore[misc]
         ("maplibre_gl_css", "https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css"),
     ]
 
-    def __init__(self, style: str) -> None:
+    def __init__(self, style: str, min_zoom: int = 0, max_zoom: int = 20) -> None:
         """
         Create a basemap.
 
         Args:
             style (str): URL of a MapLibre style.
+            min_zoom (int, optional): Minimum zoom of the map. Defaults to 0.
+            max_zoom (int, optional): Maximum zoom of the map. Defaults to 20.
         """
         # The attribution is read from the style by the plugin.
         super().__init__(tiles=style, attr=" ", name="Basemap")
+        self.min_zoom = min_zoom
+        self.max_zoom = max_zoom
