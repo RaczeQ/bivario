@@ -1,9 +1,7 @@
 name: "Build & deploy docs"
 on:
-  # Not on the release itself: it runs on a tag, which the github-pages environment does not accept.
-  workflow_run:
-    workflows: ["Build & publish - PROD"]
-    types: [completed]
+  # Started by "Build & publish - PROD". Not on the release itself: it runs on a tag, which the
+  # github-pages environment does not accept.
   workflow_dispatch:
 
 concurrency:
@@ -11,13 +9,10 @@ concurrency:
 
 jobs:
   build:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     name: Build docs 📚
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
