@@ -18,7 +18,9 @@ Python library for plotting bivariate choropleth maps in Matplotlib, Folium and 
     <a href="https://pypi.org/project/bivario" target="_blank"><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/bivario"></a>
 </p>
 
-# Installation
+[Documentation](https://raczeq.github.io/bivario/) · [Examples](https://raczeq.github.io/bivario/examples/quickstart/) · [Palettes](https://raczeq.github.io/bivario/palettes/) · [API reference](https://raczeq.github.io/bivario/api/)
+
+## Installation
 
 With pip:
 ```
@@ -35,7 +37,7 @@ With conda:
 conda install conda-forge::bivario
 ```
 
-# Usage
+## Usage
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/bivario_combined.jpg"><br/>
@@ -94,7 +96,6 @@ explore_bivariate_data(
 
 Set numerical mode (disable bucketing):
 
-> [!NOTE]
 > By default, map is created using `Mapclassify` library with `NaturalBreaks` method to split data into 5 categories.
 > Method and number of buckets can be changed or disabled completely.
 
@@ -118,7 +119,7 @@ explore_bivariate_data(
   <span>Example of a Folium map in a numerical mode.</span>
 </p>
 
-# Bivariate colourmaps
+## Bivariate colourmaps
 
 Palettes in `bivario` are created by blending 2 or 4 colours in a 2D space using OKLab colour space. The operations on input and output are done in RGB, an internally are transformed into OKLab values using `colour-science` library.
 
@@ -144,7 +145,7 @@ Palettes in `bivario` are created by blending 2 or 4 colours in a 2D space using
   <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/named_repr.png" height=200><br/>
 </p>
 
-## Available palettes
+### Available palettes
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/RaczeQ/bivario/main/images/available_palettes.png"><br/>

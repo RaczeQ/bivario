@@ -7,7 +7,7 @@ import narwhals as nw
 import numpy as np
 
 from bivario._alpha import prepare_alpha_values
-from bivario._constants import DARK_MODE_TILES_KEYWORDS
+from bivario._constants import DARK_MODE_TILES_KEYWORDS, DARK_STYLE, LIGHT_STYLE
 from bivario._scheme import SCHEME_TYPE, apply_mapclassify
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
 from bivario.legend import plot_bivariate_legend, resize_fig
@@ -138,7 +138,7 @@ def viz_bivariate_data(
         k (int | tuple[int, int], optional): Number of classes for binning. Can also define two
             different values for columns a and b. Defaults to 5.
         tiles (str | None, optional): Tile layer for the map. If None, will set based
-            on dark mode - "CartoDB DarkMatter" for the dark mode, and "CartoDB Positron"
+            on dark mode - OpenFreeMap's "Dark" for the dark mode, and "Positron"
             for the light mode. Defaults to None.
         cmap (BivariateColourmap | str | None, optional): Bivariate colourmap to use.
             If None, will load a default one. Defaults to None.
@@ -238,7 +238,6 @@ def viz_bivariate_data(
     """
     try:
         from lonboard import viz
-        from lonboard.basemap import CartoBasemap
     except (ImportError, ModuleNotFoundError) as ex:
         raise ImportError(
             "The 'lonboard>=0.10' package "
@@ -279,7 +278,7 @@ def viz_bivariate_data(
         if dark_mode is None:
             dark_mode = False
 
-        tiles = CartoBasemap.DarkMatter if dark_mode else CartoBasemap.Positron
+        tiles = DARK_STYLE if dark_mode else LIGHT_STYLE
     # If tiles are defined, set dark mode based on tiles if not defined
     elif dark_mode is None:
         dark_mode = False

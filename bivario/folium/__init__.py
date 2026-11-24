@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 from matplotlib.colors import rgb2hex
 
 from bivario._alpha import prepare_alpha_values
-from bivario._constants import DARK_MODE_TILES_KEYWORDS
+from bivario._constants import DARK_MODE_TILES_KEYWORDS, DARK_STYLE, LIGHT_STYLE
 from bivario._scheme import SCHEME_TYPE, apply_mapclassify
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
 from bivario.legend import plot_bivariate_legend
@@ -61,8 +61,8 @@ def explore_bivariate_data(
         k (int | tuple[int, int], optional): Number of classes for binning. Can also define two
             different values for columns a and b. Defaults to 5.
         tiles (str | folium.TileLayer | xyzservices.TileProvider | None, optional): Tile layer
-            for the map. If None, will set based on dark mode - "CartoDB DarkMatter" for the
-            dark mode, and "CartoDB Positron" for the light mode. Defaults to None.
+            for the map. If None, will set based on dark mode - OpenFreeMap's "Dark" for the
+            dark mode, and "Positron" for the light mode. Defaults to None.
         cmap (BivariateColourmap | str | None, optional): Bivariate colourmap to use.
             If None, will load a default one. Defaults to None.
         dark_mode (bool | None, optional): Whether to use dark mode for the map tiles. If None,
@@ -138,6 +138,17 @@ def explore_bivariate_data(
     """
     # alpha - yes / no - allow iterable as list of floats between 0 and 1
 
+    try:
+        from bivario.folium._basemap import MapLibreLayer
+        from bivario.folium._legend import FloatBivariateMatplotlibLegend
+    except (ImportError, ModuleNotFoundError) as ex:
+        raise ImportError(
+            "The 'folium>=0.12' package "
+            "is required for plotting folium map. You can install it using "
+            "'conda install -c conda-forge \"folium>=0.12\"' "
+            "or 'pip install \"folium>=0.12\"'."
+        ) from ex
+
     for column in (column_a, column_b):
         if isinstance(column, str) and column not in gdf.columns:
             raise ValueError(f"Column '{column}' not found in GeoDataFrame.")
@@ -152,7 +163,7 @@ def explore_bivariate_data(
         if dark_mode is None:
             dark_mode = False
 
-        tiles = "CartoDB DarkMatter" if dark_mode else "CartoDB Positron"
+        tiles = MapLibreLayer(DARK_STYLE if dark_mode else LIGHT_STYLE)
     # If tiles are defined, set dark mode based on tiles if not defined
     elif dark_mode is None:
         dark_mode = False
@@ -212,16 +223,6 @@ def explore_bivariate_data(
     )
 
     if legend:
-        try:
-            from bivario.folium._legend import FloatBivariateMatplotlibLegend
-        except (ImportError, ModuleNotFoundError) as ex:
-            raise ImportError(
-                "The 'folium>=0.12' package "
-                "is required for showing legend. You can install it using "
-                "'conda install -c conda-forge \"folium>=0.12\"' "
-                "or 'pip install \"folium>=0.12\"'."
-            ) from ex
-
         legend_kwargs = legend_kwargs or {}
 
         grid_size: int | tuple[int, int]
