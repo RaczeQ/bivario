@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Lonboard maps with lonboard 0.13 and newer
 - Maps and legends of columns with constant values
+- Legends of some values and sizes, which failed to be resized
 
 ## [0.3.1] - 2025-11-07
 

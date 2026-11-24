@@ -3,7 +3,7 @@
 import pytest
 
 from bivario.cmap import BivariateColourmap, NamedBivariateColourmap
-from bivario.legend import plot_bivariate_legend
+from bivario.legend import plot_bivariate_legend, resize_fig
 
 
 def test_plot_bivariate_legend() -> None:
@@ -57,6 +57,22 @@ def test_different_labels() -> None:
         label_a="A",
         label_b="B",
     )
+
+
+@pytest.mark.parametrize("values_a", [[1, 2], [5.0, 5.005], [0, 1e6]])  # type: ignore
+@pytest.mark.parametrize("legend_size_px", [32, 100, 200, 400])  # type: ignore
+def test_resize_fig(values_a: list[float], legend_size_px: int) -> None:
+    """Test that the legend has the given size and its labels fit in the figure."""
+    ax = plot_bivariate_legend(values_a=values_a, values_b=[10, 100])
+    fig = ax.figure
+    resize_fig(fig=fig, ax=ax, legend_size_px=legend_size_px)
+    fig.canvas.draw()
+
+    assert ax.get_window_extent().size == pytest.approx(legend_size_px, abs=0.5)
+    labels = ax.get_tightbbox()
+    assert labels is not None
+    assert fig.bbox.containsx(labels.x0) and fig.bbox.containsx(labels.x1)
+    assert fig.bbox.containsy(labels.y0) and fig.bbox.containsy(labels.y1)
 
 
 @pytest.mark.parametrize("cmap", ["bubblegum", NamedBivariateColourmap("jungle_roar")])  # type: ignore
