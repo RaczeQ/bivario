@@ -59,3 +59,17 @@ def test_disallow_nonnumeric_inputs(values_input: list[Any]) -> None:
     cmap = get_bivariate_cmap()
     with pytest.raises(TypeError):
         cmap(values_a=values_input, values_b=[0, 1])
+
+
+def test_constant_values() -> None:
+    """Test that constant values have the colours of the lowest values."""
+    from bivario import get_bivariate_cmap
+
+    cmap = get_bivariate_cmap()
+
+    np.testing.assert_array_equal(
+        cmap([5, 5], [1, 2]), cmap([0.0, 0.0], [0.0, 1.0], normalize=False)
+    )
+    np.testing.assert_array_equal(
+        cmap([1, 2], [5, 5]), cmap([0.0, 1.0], [0.0, 0.0], normalize=False)
+    )

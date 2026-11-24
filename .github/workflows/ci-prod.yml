@@ -30,3 +30,15 @@ jobs:
         run: uv run --isolated --no-project --with dist/*.tar.gz --with "geopandas>=1.0.1" tests/smoke_test.py
       - name: Publish distribution 📦 to PyPI
         run: uv publish --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} --verbose
+
+  docs:
+    name: Start the build of docs 📚
+    needs: [build-n-publish]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: gh workflow run docs.yml --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}

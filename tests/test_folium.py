@@ -8,6 +8,7 @@ import pytest
 
 from bivario import explore_bivariate_data
 from bivario._scheme import SCHEME_TYPE
+from bivario.folium._basemap import MapLibreLayer
 from bivario.folium._legend import FloatBivariateMatplotlibLegend
 
 
@@ -21,6 +22,61 @@ def test_explore_bivariate_data(dummy_data: gpd.GeoDataFrame) -> None:
 def test_dark_mode_plotting(dummy_data: gpd.GeoDataFrame) -> None:
     """Test that dark_mode can be set."""
     explore_bivariate_data(dummy_data, column_a="a", column_b="b", dark_mode=True)
+
+
+@pytest.mark.parametrize(
+    ("dark_mode", "style"), [(None, "positron"), (False, "positron"), (True, "dark")]
+)  # type: ignore
+def test_default_tiles(dummy_data: gpd.GeoDataFrame, dark_mode: bool | None, style: str) -> None:
+    """Test that the default basemap is a vector style of OpenFreeMap."""
+    html = (
+        explore_bivariate_data(dummy_data, column_a="a", column_b="b", dark_mode=dark_mode)
+        .get_root()
+        .render()
+    )
+
+    assert f"https://tiles.openfreemap.org/styles/{style}" in html
+    assert "leaflet-maplibre-gl.js" in html
+    assert "L.tileLayer" not in html
+
+
+def test_custom_tiles(dummy_data: gpd.GeoDataFrame) -> None:
+    """Test that given tiles replace the default basemap."""
+    html = (
+        explore_bivariate_data(dummy_data, column_a="a", column_b="b", tiles="OpenStreetMap")
+        .get_root()
+        .render()
+    )
+
+    assert "tile.openstreetmap.org" in html
+    assert "openfreemap" not in html
+
+
+def test_zoom_limits(dummy_data: gpd.GeoDataFrame) -> None:
+    """Test that given zoom limits apply to the default basemap."""
+    html = (
+        explore_bivariate_data(dummy_data, column_a="a", column_b="b", min_zoom=5, max_zoom=12)
+        .get_root()
+        .render()
+    )
+
+    assert "minZoom: 5, maxZoom: 12" in html
+
+
+def test_basemap_attaches_itself() -> None:
+    """Test that the basemap adds itself to the map, as Folium < 0.15 does not do it."""
+    m = folium.Map(tiles=None)
+    layer = MapLibreLayer("style.json").add_to(m)
+
+    script = layer._template.module.script(layer, {})
+
+    assert f"{layer.get_name()}.addTo({m.get_name()});" in script
+
+
+def test_constant_values(dummy_data: gpd.GeoDataFrame) -> None:
+    """Test that columns of constant values can be plotted."""
+    explore_bivariate_data(dummy_data, column_a=[5, 5], column_b=[7, 7])
+    explore_bivariate_data(dummy_data, column_a=[5, 5], column_b="b", scheme=False)
 
 
 def test_column_values_plotting(dummy_data: gpd.GeoDataFrame) -> None:

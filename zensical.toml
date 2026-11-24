@@ -1,0 +1,71 @@
+[project]
+site_name = "bivario"
+site_description = "Python library for plotting bivariate choropleth maps in Matplotlib, Folium and Lonboard"
+site_url = "https://raczeq.github.io/bivario/"
+site_author = "Kamil Raczycki"
+copyright = "Copyright &copy; 2025 Kamil Raczycki"
+repo_url = "https://github.com/RaczeQ/bivario"
+repo_name = "RaczeQ/bivario"
+extra_css = ["stylesheets/dataframe.css"]
+
+[project.theme]
+features = [
+  "content.code.copy",
+  "navigation.footer",
+  "navigation.instant",
+  "navigation.tabs",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+  "toc.follow",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to system preference"
+
+[project.markdown_extensions]
+admonition = {}
+attr_list = {}
+md_in_html = {}
+tables = {}
+toc.permalink = true
+pymdownx.highlight.anchor_linenums = true
+pymdownx.inlinehilite = {}
+pymdownx.snippets.check_paths = true
+pymdownx.superfences = {}
+
+[project.plugins.search]
+
+[project.plugins.awesome-nav]
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["."]
+inventories = [
+  "https://docs.python.org/3/objects.inv",
+  "https://matplotlib.org/stable/objects.inv",
+]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+show_root_toc_entry = false
+show_attribute_values = false
+show_source = true
+show_symbol_type_heading = true
+show_symbol_type_toc = true
+separate_signature = true
+show_signature_annotations = true
+signature_crossrefs = true

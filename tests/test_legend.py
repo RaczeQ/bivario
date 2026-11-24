@@ -73,3 +73,16 @@ def test_mixed_axis() -> None:
         tick_labels_b=["a", "b", "c", "d"],
         grid_size=(3, 100),
     )
+
+
+@pytest.mark.parametrize(
+    ("values_a", "values_b"), [([5, 5], [0, 1]), ([0, 1], [5, 5]), ([0, 0], [5, 5])]
+)  # type: ignore
+def test_constant_values(values_a: list[int], values_b: list[int]) -> None:
+    """Test that the legend of constant values can be plotted."""
+    ax = plot_bivariate_legend(values_a=values_a, values_b=values_b)
+
+    for (v_min, v_max), values in ((ax.get_ylim(), values_a), (ax.get_xlim(), values_b)):
+        # Constant values have the lowest colour
+        assert v_min == min(values)
+        assert v_min < v_max >= max(values)
