@@ -7,16 +7,17 @@ jobs:
   run-tests:
     name: "Run tests job"
     uses: ./.github/workflows/_tests.yml
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI
     needs: [run-tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: 3.12
       - name: Install uv

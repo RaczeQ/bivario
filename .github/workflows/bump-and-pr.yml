@@ -20,15 +20,15 @@ jobs:
     name: Bump ⬆️ and create a Pull Request with a new library version (${{ inputs.bumpType }})
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Configure Git user
         run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR_ID+$GITHUB_ACTOR@users.noreply.github.com"
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install uv
@@ -56,7 +56,7 @@ jobs:
         run: |
           uv run bumpver show -n -e | grep CURRENT_VERSION >> $GITHUB_OUTPUT
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           title: ${{ steps.commit_message.outputs.COMMIT_MESSAGE }}
           branch: ${{ format('release/{0}', steps.new_version.outputs.CURRENT_VERSION) }}
