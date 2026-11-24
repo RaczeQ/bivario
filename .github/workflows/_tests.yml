@@ -1,5 +1,9 @@
 name: tests
-on: workflow_call
+on:
+  workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: false
 
 jobs:
   run-tests:
@@ -22,9 +26,9 @@ jobs:
       UV_NO_MANAGED_PYTHON: True
       COLUMNS: 120
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install uv
@@ -32,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: uv sync
       - name: Cache tox runner
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: .tox
           key: tox-cache-${{ matrix.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pdm.lock') }}
