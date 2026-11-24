@@ -95,15 +95,15 @@ def plot_bivariate_legend(
     colour = font_colour or ("white" if dark_mode else "black")
     _set_colour_theme(ax, colour)
     if tick_labels_a is None:
-        y_min = parsed_values_a.min()
-        y_max = parsed_values_a.max()
+        y_min = float(parsed_values_a.min())
+        y_max = float(parsed_values_a.max())
     else:
         y_min = 0
         y_max = legend_cmap.shape[0]
 
     if tick_labels_b is None:
-        x_min = parsed_values_b.min()
-        x_max = parsed_values_b.max()
+        x_min = float(parsed_values_b.min())
+        x_max = float(parsed_values_b.max())
     else:
         x_min = 0
         x_max = legend_cmap.shape[1]

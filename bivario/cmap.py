@@ -143,9 +143,7 @@ class MplCmapBivariateColourmap(BivariateColourmap):
 
         z_colour = np.zeros_like(va_colour, dtype=float)
 
-        it = np.nditer(
-            np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=[["readwrite"]]
-        )
+        it = np.nditer(np.zeros(z_colour.shape[:-1]), flags=["multi_index"])
         while not it.finished:
             pos_a, pos_b = values_a[it.multi_index], values_b[it.multi_index]
 
@@ -202,9 +200,7 @@ class CornersBivariateColourmap(BivariateColourmap):
         low_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(self.low_colour)))
         high_colour_oklab = XYZ_to_Oklab(sRGB_to_XYZ(np.array(self.high_colour)))
 
-        it = np.nditer(
-            np.zeros(z_colour.shape[:-1]), flags=["multi_index"], op_flags=[["readwrite"]]
-        )
+        it = np.nditer(np.zeros(z_colour.shape[:-1]), flags=["multi_index"])
         while not it.finished:
             pos_a, pos_b = values_a[it.multi_index], values_b[it.multi_index]
 
