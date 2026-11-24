@@ -7,7 +7,7 @@ import narwhals as nw
 import numpy as np
 
 from bivario._alpha import prepare_alpha_values
-from bivario._constants import DARK_MODE_TILES_KEYWORDS
+from bivario._constants import DARK_MODE_TILES_KEYWORDS, DARK_STYLE, LIGHT_STYLE
 from bivario._scheme import SCHEME_TYPE, apply_mapclassify
 from bivario.cmap import BivariateColourmap, _validate_values, get_bivariate_cmap
 from bivario.legend import plot_bivariate_legend, resize_fig
@@ -138,7 +138,7 @@ def viz_bivariate_data(
         k (int | tuple[int, int], optional): Number of classes for binning. Can also define two
             different values for columns a and b. Defaults to 5.
         tiles (str | None, optional): Tile layer for the map. If None, will set based
-            on dark mode - "CartoDB DarkMatter" for the dark mode, and "CartoDB Positron"
+            on dark mode - OpenFreeMap's "Dark" for the dark mode, and "Positron"
             for the light mode. Defaults to None.
         cmap (BivariateColourmap | str | None, optional): Bivariate colourmap to use.
             If None, will load a default one. Defaults to None.
@@ -192,7 +192,7 @@ def viz_bivariate_data(
 
         Get lonboard.Map object from the result:
         >>> x.m
-        Map(...)
+        <lonboard._map.Map object at 0x...>
 
         Plot in dark mode with different colormap and different binning:
         >>> from bivario.example_data import nyc_bike_trips
@@ -234,11 +234,10 @@ def viz_bivariate_data(
         ...     column_b="morning_ends",
         ...     legend=False,
         ... )
-        Map(...)
+        <lonboard._map.Map object at 0x...>
     """
     try:
         from lonboard import viz
-        from lonboard.basemap import CartoBasemap
     except (ImportError, ModuleNotFoundError) as ex:
         raise ImportError(
             "The 'lonboard>=0.10' package "
@@ -279,7 +278,7 @@ def viz_bivariate_data(
         if dark_mode is None:
             dark_mode = False
 
-        tiles = CartoBasemap.DarkMatter if dark_mode else CartoBasemap.Positron
+        tiles = DARK_STYLE if dark_mode else LIGHT_STYLE
     # If tiles are defined, set dark mode based on tiles if not defined
     elif dark_mode is None:
         dark_mode = False
@@ -320,7 +319,12 @@ def viz_bivariate_data(
     scatterplot_kwargs = scatterplot_kwargs or {}
     path_kwargs = path_kwargs or {}
 
-    map_kwargs["basemap_style"] = tiles
+    try:
+        from lonboard.basemap import MaplibreBasemap
+
+        map_kwargs["basemap"] = MaplibreBasemap(style=tiles)
+    except ImportError:  # lonboard<0.13
+        map_kwargs["basemap_style"] = tiles
 
     # Polygon layer
     polygon_kwargs["filled"] = True

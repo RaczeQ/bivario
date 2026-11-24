@@ -1,0 +1,36 @@
+/* DataFrames in the examples, as Jupyter shows them, in the colours of the theme. */
+.md-typeset div:has(> .dataframe) {
+  overflow-x: auto;
+}
+
+.md-typeset .dataframe {
+  border: 0;
+  border-collapse: collapse;
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.md-typeset .dataframe :is(th, td) {
+  border: 0;
+  padding: 0.45em 0.9em;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.md-typeset .dataframe thead {
+  border-bottom: 0.05rem solid var(--md-default-fg-color--lighter);
+}
+
+.md-typeset .dataframe th {
+  font-weight: 700;
+}
+
+.md-typeset .dataframe tbody tr:nth-child(odd) {
+  background-color: var(--md-code-bg-color);
+}
+
+.md-typeset .dataframe tbody tr:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}

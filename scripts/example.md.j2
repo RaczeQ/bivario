@@ -1,0 +1,26 @@
+{#- The page of an example notebook: its Markdown, under a Colab badge, with maps in frames. -#}
+{%- extends 'markdown/index.md.j2' -%}
+
+{%- block header -%}
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/RaczeQ/bivario/blob/main/examples/{{ resources.metadata.name }}.ipynb)
+
+{% endblock header %}
+
+{%- block data_html -%}
+{%- if '<iframe' in output.data['text/html'] or '<!DOCTYPE html>' in output.data['text/html'] %}
+<iframe src="{{ output.metadata.filenames['text/html'] | path2url }}" loading="lazy" title="Map" style="width: 100%; aspect-ratio: 5 / 3; border: 0"></iframe>
+{% else %}
+{{ super() }}
+{%- endif -%}
+{%- endblock data_html -%}
+
+{%- block markdowncell scoped -%}
+{{ super() | replace('.ipynb)', '.md)') }}
+{%- endblock markdowncell -%}
+
+{#- Warnings have paths of the machine that runs the notebooks. -#}
+{%- block stream -%}
+{%- if output.name == 'stdout' -%}
+{{ super() }}
+{%- endif -%}
+{%- endblock stream -%}

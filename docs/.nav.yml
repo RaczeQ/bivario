@@ -1,0 +1,11 @@
+nav:
+  - Home: index.md
+  - Examples:
+      - Quickstart: examples/quickstart.md
+      - Colourmaps: examples/colourmaps.md
+      - Matplotlib: examples/matplotlib_example.md
+      - Folium: examples/folium_example.md
+      - Lonboard: examples/lonboard_example.md
+  - Palettes: palettes.md
+  - API reference: api.md
+  - Changelog: changelog.md
